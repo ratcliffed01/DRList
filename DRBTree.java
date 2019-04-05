@@ -16,6 +16,8 @@ public class DRBTree
 	String key;
 	int count;
 	int line;
+	boolean deleted;
+	int duplicate;
 
 	DRBTree left;
 	DRBTree right;
