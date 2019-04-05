@@ -29,10 +29,212 @@ public class DRCode<T>
     	}
     	//===================================================================================
     	public static void debug2(String msg){
-		System.out.println(msg);
+		//System.out.println(msg);
     	}
 
+	//================================================
+	//currency needs to be set first using DRget or DRgetKey
+	public DRListTBL<T> DRset(T obj, DRListTBL<T> drl){
 
+		drl.dl.obj = obj;		
+		return drl;
+	}
+	//================================================
+	public boolean hasDuplicates(DRListTBL<T> drl){
+		debug("hd = bkey="+drl.bt.key);
+		if (drl.bt.duplicate > 0) return true;
+		return false;
+	}
+	//================================================
+	public DRListTBL<T> deleteBTree(int count, String key, DRListTBL<T> drl){
+
+		DRCode<T> drcode = new DRCode<T>();
+		long sti = System.currentTimeMillis();
+		String dir = "";
+		String dupKey = key;
+		int ind = 0;
+		int dupCount = 0;
+
+		drl.bt = drl.root;
+
+		while (true){
+			ind = drl.bt.key.indexOf("$$D");
+			if (ind == -1) ind = drl.bt.key.length();
+			if (drcode.isGreater(drl.bt.key.substring(0,ind),key)==0){
+				if (drl.bt.count == count){		//not a duplicate, original
+					drl.bt.deleted = true;
+					debug("dbt - delete key="+drl.bt.key+" cnt="+drl.bt.count+" dupc="+drl.bt.duplicate);
+					break;
+				}
+				dupKey = drl.bt.key;
+			}
+			if (drcode.isGreater(drl.bt.key,dupKey)==1){		//key < parent key so go left
+				if (drl.bt.left == null){
+					dir += "l";
+					count = -1;
+					break;
+				}else{
+					dir += "l";
+					drl.bt = drl.bt.left;
+				}
+			}else{						//must > parent key so goto right
+				if (drl.bt.right == null){
+					dir += "r";
+					count = -1;
+					break;
+				}else{
+					dir += "r";
+					drl.bt = drl.bt.right;
+				}
+			}
+		}
+
+		debug("dbt - "+dir+" cnt="+count+" key="+key+" bkey="+drl.bt.key+" bcnt="+drl.bt.count+
+			" ti="+(System.currentTimeMillis()-sti)+"ms");
+		return drl;
+	}
+	//================================================
+	//returns element number in an array so currency can be set to allow duplicate to be deleted
+	public int[] DRgetKeyDupI(String key, DRListTBL<T> drl){
+
+		DRCode<T> drcode = new DRCode<T>();
+		long sti = System.currentTimeMillis();
+
+		drl = drcode.DRgetKey(key, drl);			//get original key
+		if (drl.success == -1) return null;
+		debug("gdupi - "+drl.dl.obj+" key="+key+" bkey="+drl.bt.key+" cnt="+drl.bt.count+" dup="+drl.bt.duplicate);
+
+		int i = 0;
+		int count = 0;
+		int ind = 0;
+		String dir = "";
+		String cntStr = "";
+
+		drl.success = 0;
+		String dupKey = key + "$$D";
+
+		drl.bt = drl.root;
+
+		while (true){
+			ind = drl.bt.key.indexOf("$$D");
+			if (ind == -1) ind = drl.bt.key.length();
+			if (drcode.isGreater(drl.bt.key.substring(0,ind),key)==0){
+				if (!drl.bt.deleted){
+					cntStr += drl.bt.count +"/";
+					i++;
+				}
+				dupKey = drl.bt.key;
+				debug("gdup - "+dupKey+" cnt="+drl.bt.count+" key="+key+" i="+i);
+			}
+			if (drcode.isGreater(drl.bt.key,dupKey)==1){		//key < parent key so go left
+				if (drl.bt.left == null){
+					dir += "l";
+					count = -1;
+					break;
+				}else{
+					dir += "l";
+					drl.bt = drl.bt.left;
+				}
+			}else{						//must be -1 key > parent key so goto right
+				if (drl.bt.right == null){
+					dir += "r";
+					count = -1;
+					break;
+				}else{
+					dir += "r";
+					drl.bt = drl.bt.right;
+				}
+			}
+		}
+
+		String[] str = cntStr.split("/");
+		int[] cnt = new int[str.length];
+		for (i = 0; i < str.length; i++)
+			cnt[i] = Integer.parseInt(str[i]);
+
+		debug("gdupi - "+dir+" cstr="+cntStr+" str0="+str[0]+" siz="+drl.size+" strl="+str.length+
+			" ti="+(System.currentTimeMillis()-sti)+"ms");
+
+		return cnt;
+	}
+
+	//================================================
+	public Object[] DRgetKeyDup(String key, DRListTBL<T> drl){
+
+		DRCode<T> drcode = new DRCode<T>();
+		long sti = System.currentTimeMillis();
+
+		drl = drcode.DRgetKey(key, drl);			//get original key
+		if (drl.success == -1) return null;
+
+		int i = 0;
+		int j = 0;
+		int count = 0;
+		int ind = 0;
+		String dir = "";
+		String cntStr = "";
+
+		drl.success = 0;
+		String dupKey = key + "$$D";
+
+		debug("gdup - "+drl.dl.obj+" key="+drl.dl.sortKey+" cnt="+drl.bt.count);
+
+		drl.bt = drl.root;
+
+		while (true){
+			ind = drl.bt.key.indexOf("$$D");
+			if (ind == -1) ind = drl.bt.key.length();
+			if (drcode.isGreater(drl.bt.key.substring(0,ind),key)==0){
+				if (!drl.bt.deleted){
+					cntStr += drl.bt.count + "/";
+				}
+				dupKey = drl.bt.key;
+				debug("gdup - "+dupKey+" cnt="+drl.bt.count+" key="+key+" i="+i);
+			}
+			if (drcode.isGreater(drl.bt.key,dupKey)==1){		//key < parent key so go left
+				if (drl.bt.left == null){
+					dir += "l";
+					break;
+				}else{
+					dir += "l";
+					drl.bt = drl.bt.left;
+				}
+			}else{						//must be -1 key > parent key so goto right
+				if (drl.bt.right == null){
+					dir += "r";
+					break;
+				}else{
+					dir += "r";
+					drl.bt = drl.bt.right;
+				}
+			}
+		}
+
+		String[] str = cntStr.split("/");
+		int[] cnt = new int[str.length];
+		for (i = 0; i < str.length; i++)
+			cnt[i] = Integer.parseInt(str[i]);
+		Object[] o = new Object[cnt.length];
+
+		if (cnt.length != 0){				//key not found
+			drl.fromGetKey = true;
+			i = 0;
+			while (i < cnt.length){
+				drl = drcode.DRgetEle(cnt[i],drl);
+				if (drl.success != -1){			//getele has failed either deleted or cnt wrong
+					o[i] = drl.dl.obj;
+					debug("gdup - dcnt="+drl.dl.count+" ocnt="+cnt[i]+"  dsk="+drl.dl.sortKey+
+							" o="+drl.dl.obj);
+					i++;
+				}
+			}
+			drl.fromGetKey = false;
+		}
+		debug("gdup - "+dir+" "+count+" key="+drl.bt.key+" cl="+cnt.length+" siz="+drl.size+" dn="+drl.deleteNum+
+			" ti="+(System.currentTimeMillis()-sti)+"ms");
+
+		return o;
+	}
 	//================================================
 	public DRListTBL<T> DRdelete(DRListTBL<T> drl){
 
@@ -49,11 +251,21 @@ public class DRCode<T>
 		drl.deleteNum++;
 		drl.size--;
 
-		debug("del - deleted ele - "+dl.count+" dsk="+dl.sortKey);
-
 		drl.dl = dl;
 		drl.fdl = fdl;
 
+		if (drl.dl.sortKey != null){
+			drl = drcode.deleteBTree(drl.dl.count,drl.dl.sortKey,drl);	//set drbtree delete flag to true	
+			if ((drl.bt.key.indexOf("$$D") > -1)||(drl.bt.duplicate>0)){
+				drl = drcode.DRgetKey(drl.dl.sortKey,drl);			//get original key
+				debug("del - deleted ele - "+drl.dl.count+" dsk="+drl.dl.sortKey);
+				if (drl.bt.key.indexOf("$$D") == -1){
+					drl.bt.duplicate--;				//update original count
+				}else{
+					drl.bt.duplicate++;			//orig deleted so set dupcnt
+				}
+			}
+		}
 		if (drl.deleteNum == 100) drl = drcode.reloadIndex(drl);	//reload index and btree and reset delete count
 
 		drl.success = 1;			//success
@@ -73,10 +285,10 @@ public class DRCode<T>
 
 		int saveCnt = dl.count;
 
-		debug1("rli - get1st="+fdl.count+" fsk="+fdl.sortKey);
+		debug("rli - get1st="+fdl.count+" fsk="+fdl.sortKey);
 
 		DRArrayList<T>[] xx = drcode.toArraySub(dl,fdl,drl.size);
-		debug1("rli - xxl="+xx.length+" xsk="+xx[xx.length - 1].sortKey);
+		debug2("rli - xxl="+xx.length+" xsk="+xx[xx.length - 1].sortKey+" xcnt="+xx[xx.length - 1].count);
 
 		dl = fdl;
 		drl = drcode.clear(drl);
@@ -90,7 +302,7 @@ public class DRCode<T>
 		//get currency to restart
 		drl = drcode.DRgetEle(saveCnt,drl);
 
-		debug1("rli - size="+drl.size+" lastcnt="+fdl.prev.count+" ti="+(System.currentTimeMillis() - sti)+"ms");
+		debug2("rli - size="+drl.size+" lastcnt="+fdl.prev.count+" ti="+(System.currentTimeMillis() - sti)+"ms");
 
 		return drl;
 	}
@@ -112,16 +324,21 @@ public class DRCode<T>
 			debug("abt - root load cnt="+count+" rkey="+root.key);
 		}else{
 			DRBTree nbt = new DRBTree();		//new node
-			DRBTree pbt = new DRBTree();		//parent node
 			nbt.count = count;
 			nbt.line = line;
 			nbt.key = key;
 			nbt.left = null;
 			nbt.right = null;
 			bt = root;
-			//debug("bkey="+bt.key+" key="+key+" rkey="+root.key);
+			debug("bkey="+bt.key+" key="+key+" rkey="+root.key);
 			while (true){
-				if (drcode.isGreater(bt.key,key)==0) break;	//if duplicate ignore
+				if (drcode.isGreater(bt.key,key)==0){		//if duplacter add $$D1$ to key
+					bt.duplicate++;				//upd dupcnt on original
+					if (key.indexOf("$$D") > -1) key = key.substring(0,key.indexOf("$$D"));
+					key += "$$D"+count+"$";
+					nbt.key = key;
+					debug("abt - dup found key="+key+" btk="+bt.key+" cnt="+count+" bcnt="+bt.count);
+				}
 				if (drcode.isGreater(bt.key,key)==1){		//key < parent key so go left
 					if (bt.left == null){
 						dir += "l";
@@ -131,7 +348,8 @@ public class DRCode<T>
 						dir += "l";
 						bt = bt.left;
 					}
-				}else{						//must be -1 key > parent key so goto right
+				}
+				if (drcode.isGreater(bt.key,key)==-1){		//must be -1 key > parent key so goto right
 					if (bt.right == null){
 						dir += "r";
 						bt.right = nbt;
@@ -143,6 +361,7 @@ public class DRCode<T>
 				}
 			}
 		}
+		debug("abt - bt key="+bt.key+ " "+dir);
 		return bt;
 	}
 
@@ -212,12 +431,14 @@ public class DRCode<T>
 		DRBTree bt = drl.bt;
 		DRBTree root = drl.root;
 
-		dl = fdl;					//set to 1st
+		String key = "";
+		int ncnt = 0;
 
-		//debug("add obj1 ");
+		dl = fdl;					//set to 1st
 
 		if (dl.prev == null){
 			dl.count = 1;
+			ncnt = dl.count;
 			drl.size = 1;
 			dl.sortKey = sk;
 			dl.obj = obj1;
@@ -229,6 +450,7 @@ public class DRCode<T>
 			ldl = fdl.prev;				//1st prev goes to last element
 			DRArrayList<T> ndl = new DRArrayList<T>();
 			ndl.count = ldl.count + 1;
+			ncnt = ndl.count;
 			drl.size++;
 			ndl.sortKey = sk;
 			ndl.obj = obj1;
@@ -244,8 +466,9 @@ public class DRCode<T>
 			}
 		}
 		if (sk != null){
-			bt = drcode.DRaddBTree(sk,dl.count,dl.count,bt,root);
+			bt = drcode.DRaddBTree(sk,ncnt,ncnt,bt,root);
 			if (bt.line == 1) root = bt;
+			debug("ak - add obj1 sk="+sk+" dup="+bt.duplicate+" ncnt="+ncnt);
 		}
 
 		drl.dl = dl;
@@ -289,13 +512,19 @@ public class DRCode<T>
 			}
 		}
 		debug("bkey="+bt.key+" key="+key+" rkey=["+rkey+"] "+ret1+ret2+rkey.length());
+		int ind = 0;
+		String dupKey = key + "$$D";
 
 		while (true){
-			if (drcode.isGreater(bt.key,key)==0){		//found so exit
+			//if original marked deleted find duplicate that is not deleted
+			ind = bt.key.indexOf("$$D");
+			if (ind == -1) ind = bt.key.length();
+			if (drcode.isGreater(bt.key.substring(0,ind),key)==0){		//found so exit
 				count = bt.count;
-				break;
+				if (!bt.deleted) break;
+				dupKey = bt.key;
 			}
-			if (drcode.isGreater(bt.key,key)==1){		//key < parent key so go left
+			if (drcode.isGreater(bt.key,dupKey)==1){		//key < parent key so go left
 				if (bt.left == null){
 					dir += "l";
 					count = -1;
@@ -316,12 +545,14 @@ public class DRCode<T>
 			}
 		}
 
-		debug1("gbt - "+dir+" "+count+" key="+bt.key+" ti="+(System.currentTimeMillis()-sti)+"ms");
-
+		debug("gbt - "+dir+" "+count+" bkey="+bt.key+" key="+key+" ti="+(System.currentTimeMillis()-sti)+"ms");
+		drl.bt = bt;
 		if (count == -1){				//key not found
 			drl.success = -1;
 		}else{
+			drl.fromGetKey = true;
 			drl = drcode.DRgetEle(count,drl);
+			drl.fromGetKey = false;
 		}
 
 		return drl;
@@ -336,7 +567,7 @@ public class DRCode<T>
 		DRIndex<T> di = drl.di;
 
 		drl.success = 1;
-		debug1("ge - start i="+i);
+		debug("ge - start i="+i+" siz="+drl.size);
 
 		DRCode<T> drcode = new DRCode<T>();
 
@@ -346,7 +577,7 @@ public class DRCode<T>
 			drl.success = -1;
 			return drl;			//element count must be > 0
 		}
-		if (i > drl.size){		//element count must be > 0
+		if (i > (drl.size+drl.deleteNum)){		//element count must be > 0
 			drl.success = -1;
 			return drl;			
 		}
@@ -359,12 +590,12 @@ public class DRCode<T>
 			return drl;			
 		}else{
 			ldl = dl.prev;				//1st prev goes to last
-			debug("i="+i+" ldlc="+ldl.count);
 			if (ldl.count < i) return null;
 			if (fdl.saveIndex > 0 && fdl.saveIndex < i){
 				j = fdl.saveIndex;
 				dl = fdl.save;
 			}
+			debug("ge - i="+i+" ldlc="+ldl.count+" j="+j);
 			if (i > 100 && (i - j) > 100){				//if true use index
 				dl = drcode.getIndex(i,di,fdi);
 				j = dl.count;
@@ -373,13 +604,20 @@ public class DRCode<T>
 				dl = dl.next;
 				j++;
 			}
-			debug1("ge - j="+j+" i="+i+" dlc="+dl.count+" sk="+dl.sortKey+" del="+dl.deleted);
-			if (dl.deleted){
-				drl.dl = dl;
-				drl = drcode.nextNonDeleted(drl);
-				if (drl.success == -1) return drl;
-				dl = drl.dl;
-				debug1("ge - dlc="+dl.count+" sk="+dl.sortKey+" del="+dl.deleted);
+			debug("ge - j="+j+" i="+i+" dlc="+dl.count+" sk="+dl.sortKey+" del="+dl.deleted);
+			if (drl.fromGetKey){
+				if (dl.deleted){
+					drl.success = -1;
+					return drl;
+				}
+			}else{
+				if (dl.deleted){
+					drl.dl = dl;
+					drl = drcode.nextNonDeleted(drl);
+					if (drl.success == -1) return drl;
+					dl = drl.dl;
+					debug1("ge - dlc="+dl.count+" sk="+dl.sortKey+" del="+dl.deleted);
+				}
 			}
 		}
 		fdl.saveIndex = j;
@@ -402,9 +640,10 @@ public class DRCode<T>
 		di = fdi;
 		int ind = (cnt / 1000) + 1;
 		int rem = cnt % 1000;
+		debug("gi - cnt="+cnt+" rem="+rem+" diind="+di.ind+" ind="+ind+" indn="+di.indNext.ind);
+		if (di.indPrev.ind < ind) ind = di.indPrev.ind;		//get last if < ind set to ind else loop forever
 		while (di.ind < ind)
 			di = di.indNext;
-		//debug("gi - cnt="+cnt+" rem="+rem+" diind="+di.ind+" ind3="+di.ind3.count);
 		if (rem < 101) return di.indPrev.ind10;
 		if (rem < 201) return di.ind1;
 		if (rem < 301) return di.ind2;
@@ -479,6 +718,7 @@ public class DRCode<T>
 			ret1 = dl.sortKey.matches("^[0-9]+$");
 			if (ret1) dl.sortKey = "0000000000".substring(dl.sortKey.length()) + dl.sortKey;
 			if (!dl.deleted){
+				dl.count = i + 1;		//ensure count is sequential with none missing
 			 	dla[i] = dl;
 				i++;
 			}
@@ -539,7 +779,7 @@ public class DRCode<T>
 		debug("get1st="+fdl.count+" fsk="+fdl.sortKey);
 
 		DRArrayList<T>[] xx = drcode.toArraySub(dl,fdl,drl.size);
-		debug2("sa - xxl="+xx.length+" xsk="+xx[xx.length - 1].sortKey);
+		debug("sa - xxl="+xx.length+" xsk="+xx[xx.length - 1].sortKey);
 
 		if (xx[0].sortKey == null) return drl;		//sortkey not set so no point sorting
 
