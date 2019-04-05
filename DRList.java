@@ -1,6 +1,8 @@
 // to compile do from folder above C:\projects\DRList>javac -cp ../ DRList.java
 //========================================================================
-//	Author - David Ratcliffe	Version - 1.0	Date - 21/03/2019
+//	Author - David Ratcliffe	Version - 1.1	Date - 21/03/2019
+//
+//	ver1.1	- Add new functions to allow duplicates in BTree and reIndex, plus fix some bugs
 //
 //	programs - DRList.java, DRArrayList.java, DRIndex.java, DRBTree.java, DRCode.java, DRListTBL
 //
@@ -26,6 +28,11 @@
 //	void DRsortAsc()		- if sortkey added will sort in key order, ascending
 //	void DRsortDsc()		- if sortkey added will sort in key order, descending
 //	void toDRList(DRArrayList<T>[] xx)- converts an array to DRList
+//	boolean hasDuplicates()		- checks for duplicate keys
+//	int[] DRgetKeyDupI(String key)	- gets all element nos for a duplicatekey, so currency can be set on any 1 duplicate
+//	Object[] DRgetKeyDup(String key)- gets all objects for duplicate key, so duplicates can be seen
+//	boolean reIndex()		- reloads index and btree and removes deleted elements, takes about 90ms for 10000
+//	void DRset(T obj1)		- reset existing value to the object, currency needs to be set first
 
 package DRList;
 
@@ -49,12 +56,40 @@ public class DRList<T>
 
     	//===================================================================================
     	public static void debug(String msg){
-		System.out.println(msg);
+		//System.out.println(msg);
     	}
+	//================================================
+	//check current has duplicates
+	public boolean hasDuplicates(){
+		DRCode<T> drcode = new DRCode<T>();
+		return drcode.hasDuplicates(drl);
+	}
+	//================================================
+	public int[] DRgetKeyDupI(String key){
+		DRCode<T> drcode = new DRCode<T>();
+		return drcode.DRgetKeyDupI(key,drl);
+	}
+	//================================================
+	public Object[] DRgetKeyDup(String key){
+		DRCode<T> drcode = new DRCode<T>();
+		return drcode.DRgetKeyDup(key,drl);
+	}
+	//================================================
+	public boolean reIndex(){
+
+		DRCode<T> drcode = new DRCode<T>();
+		drl.success = 1;
+		drl = drcode.reloadIndex(drl);
+		
+		boolean reindex = true;
+		if (drl.success == -1) reindex = false;
+		return reindex;
+	}
 	//================================================
 	public boolean DRdelete(){
 
 		DRCode<T> drcode = new DRCode<T>();
+		drl.success = 1;
 		drl = drcode.DRdelete(drl);
 		
 		boolean deleted = true;
@@ -62,6 +97,14 @@ public class DRList<T>
 		return deleted;
 	}
 
+	//================================================
+	public void DRset(T obj1){
+
+		DRCode<T> drcode = new DRCode<T>();
+		drl = drcode.DRset(obj1,drl);
+
+		return;
+	}
 
 	//================================================
 	public void DRadd(T obj1){
