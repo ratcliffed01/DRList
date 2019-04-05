@@ -166,7 +166,7 @@ public class DRListTest
 		System.out.println("DLT - get2004 - "+dl3.DRget(2004));
 		System.out.println("DLT - getkey daver194 - "+dl3.DRgetKey("DaveR Number194"));
 
-		for (int l = 1001; l < 3200; l++){			//load another 1000 names
+		for (int l = 1001; l < 9000; l++){			//load another 1000 names
 			name = "DaveR Number"+Integer.toString(Integer.valueOf(l));
 			dl3.DRaddkey(name,name);
 		}
@@ -179,14 +179,88 @@ public class DRListTest
 		System.out.println("DLT - get4000 - "+dl3.DRget(4000)+" nxt="+dl3.DRnext());
 
 		name = "DaveR Number1010";		//add duplicate
-		dl3.DRaddkey(name,name);
-		System.out.println("DLT - getkey daver1010 - "+dl3.DRgetKey("DaveR Number1010")+" "+dl3.DRgetLast());
+		dl3.DRaddkey(name+"dup1",name);
+		name = "DaveR Number1010";		//add duplicate
+		dl3.DRaddkey(name+"dup2",name);
+		name = "DaveR Number1010";		//add duplicate
+		dl3.DRaddkey(name+"dup3",name);
+		name = "DaveR Number1010";		//add duplicate
+		dl3.DRaddkey(name+"dup4",name);
+		System.out.println("DLT - getkey daver1010 - "+dl3.DRgetKey("DaveR Number1010")+" dup "+dl3.hasDuplicates());
 
+		if (dl3.hasDuplicates()){ 
+			int[] ii = dl3.DRgetKeyDupI("DaveR Number1010");
+			Object[] aa = dl3.DRgetKeyDup("DaveR Number1010");
+			System.out.println("DLT - post getkd aal="+aa.length);
+			for (int i = 0; i < aa.length; i++)
+				System.out.println("DLT - dupnames = "+aa[i]+" ("+ii[i]+")");
+		}
+		System.out.println("DLT - 1st get10479 - "+dl3.DRget(10479)+" siz="+dl3.DRsize());
+		dl3.DRset("DaveR Number1010dup3settest");
+		System.out.println("DLT - 2nd get2487 - "+dl3.DRget(2487)+" del="+dl3.DRdelete());
+		System.out.println("DLT - 3rd gk10477="+dl3.DRget(10477)+" dup="+dl3.hasDuplicates());
+		if (dl3.DRdelete()){
+			int[] ii1 = dl3.DRgetKeyDupI("DaveR Number1010");
+			Object[] aa1 = dl3.DRgetKeyDup("DaveR Number1010");
+			System.out.println("DLT - post dupdel aal="+aa1.length+" iil="+ii1.length+" siz="+dl3.DRsize());
+			for (int i = 0; i < aa1.length; i++)
+				System.out.println("DLT - dupnames = "+aa1[i]+" ("+ii1[i]+")");
+		}
+		if (dl3.reIndex()){
+			System.out.println("DLT - reindex successful siz="+dl3.DRsize());
+		}
 		dl3.DRsortAsc();
 		System.out.println("DLT - asc siz="+dl3.DRsize()+" 1st="+dl3.DRgetFirst()+" last="+dl3.DRgetLast()+
-				" getkey daver1010 - "+dl3.DRgetKey("DaveR Number1010"));
+				" getkey daver1010 - "+dl3.DRgetKey("DaveR Number1010")+" get10010="+dl3.DRget(10010));
+
 		System.out.println("DLT - ti="+(System.currentTimeMillis() - sti)+"ms");
+	
+		DRList<DRList<Character>> dl4 = new DRList<DRList<Character>>();
+		dl4.DRadd(dltest.twoDDList("111111"));
+		dl4.DRadd(dltest.twoDDList("1 13 1"));
+		dl4.DRadd(dltest.twoDDList("11  11"));
+
+		char[] xxc = new char[dl4.DRsize()];
+		String str = "";
+		for (int i = 0; i< dl4.DRsize(); i++){
+			xxc = dltest.getChar(dl4.DRget(i));
+			str = "";
+			for (int j = 0; j < xxc.length; j++)
+				str += String.valueOf(xxc[j]);
+			System.out.println(str);
+		}
+		System.out.println("outout 1,3 - "+dltest.get2DArray(dl4,1,2)+dltest.get2DArray(dl4,1,3));
 	}
+	//======================================================
+    	public char get2DArray(DRList<DRList<Character>> dl4, int i,int j){
+		DRListTest dltest = new DRListTest();
+		char oc = dltest.getOneChar(dl4.DRget(i),j);
+		return oc;
+	}
+	//=======================================================
+     	public char getOneChar(DRList<Character> dl5,int i){
+		char oc = dl5.DRget(i);
+		return oc;
+	}
+	//=======================================================
+    	public char[] getChar(DRList<Character> dl5){
+		char[] xxc = new char[dl5.DRsize()];
+		for (int i = 0; i < dl5.DRsize(); i++)
+			xxc[i] = dl5.DRget(i);
+		return xxc;
+	}
+	//======================================================
+    	public DRList<Character> twoDDList(String str){
+
+		DRList<Character> c = new DRList<Character>();
+
+		char x;
+		for (int i = 0; i < str.length(); i++){
+			x = str.charAt(i);
+			c.DRadd(x);
+		}
+		return c;
+    	}
 
     	//===================================================================================
 	// read txt files from local folder and load into 1darray, 1st line is number of names
