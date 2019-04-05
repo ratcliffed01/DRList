@@ -31,5 +31,6 @@ public class DRListTBL<T>
 	int success;
 	int deleteNum;
 	int size;
+	boolean fromGetKey;
 }
 
