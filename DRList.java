@@ -1,8 +1,9 @@
 // to compile do from folder above C:\projects\DRList>javac -cp ../ DRList.java
 //========================================================================
-//	Author - David Ratcliffe	Version - 1.1	Date - 21/03/2019
+//	Author - David Ratcliffe	Version - 1.2	Date - 21/03/2019
 //
 //	ver1.1	- Add new functions to allow duplicates in BTree and reIndex, plus fix some bugs
+//	ver1.2	- Add DRFind, new search facility and sort on Objects field
 //
 //	programs - DRList.java, DRArrayList.java, DRIndex.java, DRBTree.java, DRCode.java, DRListTBL
 //
@@ -33,7 +34,30 @@
 //	Object[] DRgetKeyDup(String key)- gets all objects for duplicate key, so duplicates can be seen
 //	boolean reIndex()		- reloads index and btree and removes deleted elements, takes about 90ms for 10000
 //	void DRset(T obj1)		- reset existing value to the object, currency needs to be set first
-
+//	boolean DRinsert(T obj)		- insert new element after current element, currency needs to be set first
+//	boolean DRinsertKey(String sk, T obj)
+//					- insert new element with key after current element,  currency needs to be set first
+//	void DRsortNoKeyAsc(String fieldName) throws NoSuchFieldException
+//					- sorts ascending on field in object which is diffeent from sorkkey
+//	void DRsortNoKeyDsc(String fieldName) throws NoSuchFieldException
+//					- sorts descending on field in object which is diffeent from sorkkey
+//	T[] DRFind(String fieldName, String operator, String value) 
+//					- returns an Object array, searches the collection on a particular field within the object or
+//					  on the whole object if just 1 field. Fieldname can be null of a valid fieldname, the
+//					  operator can be ">","<","Like","Min","Max", the value is null for Max/Min else is passed as 
+//					  a String and will be converted to the same field type of the fieldname. If fieldname has //					  asc/dsc delimited by a space then the return object array is sorted ascending/descending
+//					  accordingly 
+//	T[] DRFindAnd(String fieldName, String operator, String value, T[] obj)
+//					- based on DRFind and allows searching on the Object array passed using fieldName, operator
+//					  and value as extra criteria. These parameters are the same DRFind. A reduced Object array
+//					  is passed back.
+//	T[] DRFindOr(String fieldName, String operator, String value, T[] obj)
+//					- Based on DRFind and returns an Object array combined with the passed Object array. The
+//					  search criteria is the same as DRFind and serches the whole collection and combines
+//					  the 2 arrays.
+//	T[] DRFindMinus(String fieldName, String operator, String value, T[] obj)
+//					- Based on DRFind and returns an Object array with the new selection criteria removed 
+//
 package DRList;
 
 import java.io.*;
@@ -48,6 +72,8 @@ import DRList.DRIndex;
 import DRList.DRBTree;
 import DRList.DRCode;
 import DRList.DRListTBL;
+import DRList.DRNoMatchException;
+import DRList.DRFind;
 
 public class DRList<T>
 {
@@ -58,6 +84,66 @@ public class DRList<T>
     	public static void debug(String msg){
 		//System.out.println(msg);
     	}
+	//================================================
+	public T[] DRFind(String fieldName, String operator, String value)
+		throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		return drf.DRFind(fieldName,operator,value,drl);
+	}
+	//================================================
+	public T[] DRFindAnd(String fieldName, String operator, String value, T[] obj)
+		throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		return drf.DRFindAnd(fieldName,operator,value,obj);
+	}
+	//================================================
+	public T[] DRFindOr(String fieldName, String operator, String value, T[] obj)
+		throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		return drf.DRFindOr(fieldName,operator,value,drl,obj);
+	}
+	//================================================
+	public T[] DRFindMinus(String fieldName, String operator, String value, T[] obj)
+		throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		return drf.DRFindMinus(fieldName,operator,value,obj);
+	}
+	//=========================================================
+	public void DRsortNoKeyAsc(String fieldName) throws DRNoMatchException
+	{
+
+		DRFind<T> drf = new DRFind<T>();
+		DRCode<T> drcode = new DRCode<T>();
+
+		long sti = System.currentTimeMillis();
+		debug("asc - size="+drcode.DRsize(drl)+" sn="+fieldName);
+
+		drl = drf.DRsortNoKey(drl, 1,fieldName);
+
+		long diff = System.currentTimeMillis() - sti;
+		debug("asc - size="+drcode.DRsize(drl)+" elapsed="+diff+"ms");
+		return;
+	}
+	//=========================================================
+	public void DRsortNoKeyDsc(String fieldName) throws DRNoMatchException
+	{
+
+		DRFind<T> drf = new DRFind<T>();
+		DRCode<T> drcode = new DRCode<T>();
+
+		long sti = System.currentTimeMillis();
+		debug("dsc - size="+drcode.DRsize(drl)+" sn="+fieldName);
+
+		drl = drf.DRsortNoKey(drl, -1,fieldName);
+
+		long diff = System.currentTimeMillis() - sti;
+		debug("asc - size="+drcode.DRsize(drl)+" elapsed="+diff+"ms");
+		return;
+	}
 	//================================================
 	//check current has duplicates
 	public boolean hasDuplicates(){
@@ -96,7 +182,37 @@ public class DRList<T>
 		if (drl.success == -1) deleted = false;
 		return deleted;
 	}
+	//================================================
+	// currency should have been set via DRget or DRgetKey, this will insert with no key
+	public boolean DRinsert(T obj){
 
+		try
+		{
+			DRCode<T> drcode = new DRCode<T>();
+			drl = drcode.DRinsert(null,obj,drl);
+		}
+		catch (DRListException de)
+		{
+			return false;
+		}
+		return true;
+	}
+
+	//================================================
+	// currency should have been set via DRget or DRgetKey, this will insert with a key
+	public boolean DRinsertKey(String sk, T obj){
+
+		try
+		{
+			DRCode<T> drcode = new DRCode<T>();
+			drl = drcode.DRinsert(sk,obj,drl);
+		}
+		catch (DRListException de)
+		{
+			return false;
+		}
+		return true;
+	}
 	//================================================
 	public void DRset(T obj1){
 
