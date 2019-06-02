@@ -13,6 +13,7 @@ import DRList.DRIndex;
 import DRList.DRBTree;
 import DRList.DRCode;
 import DRList.DRListTBL;
+import DRList.DRNoMatchException;
 
 public class DRListTest
 {
@@ -42,6 +43,37 @@ public class DRListTest
 		vos2 = (knapVO)dl1.DRnext();
 		String x2 = vos2.col;
 		System.out.println("DLT - DR size=" + dl1.DRsize()+ " col="+x1+" "+x2+" gkblue="+dl1.DRgetKey("blue"));
+
+		knapVO[] vos3 = {new knapVO("black",9.0f,883.0f,0.0f)};
+		if (dl1.DRinsert(vos3[0]))
+			System.out.println("DLT - insert success DR size=" + dl1.DRsize());
+		else
+			System.out.println("DLT - insert fail");
+
+		try{
+			dl1.DRsortNoKeyAsc("col");
+		}catch (NoSuchFieldException nsf){
+			System.out.println("DLT - nsf col");
+		}
+		for (int i=0; i < dl1.DRsize(); i++){
+			vos2 = (knapVO)dl1.DRget(i);
+			System.out.println("DLT - i="+i+" col="+vos2.col+" price="+vos2.price);
+		}
+		try{
+			dl1.DRsortNoKeyAsc("price");
+		}catch (NoSuchFieldException nsf){
+			System.out.println("DLT - nsf price");
+		}
+		for (int i=0; i < dl1.DRsize(); i++){
+			vos2 = (knapVO)dl1.DRget(i);
+			System.out.println("DLT - i="+i+" col="+vos2.col+" price="+vos2.price);
+		}
+		try{
+			dl1.DRsortNoKeyAsc("price1");
+		}catch (NoSuchFieldException nsf){
+			System.out.println("DLT - nsf price1");
+		}
+
 		dl1.DRclear();
 
 		//==================================================================
@@ -230,6 +262,21 @@ public class DRListTest
 			System.out.println(str);
 		}
 		System.out.println("outout 1,3 - "+dltest.get2DArray(dl4,1,2)+dltest.get2DArray(dl4,1,3));
+
+		System.out.println("DLT - asc siz="+dl3.DRsize()+" getkey daver1010 - "+dl3.DRgetKey("DaveR Number1010"));
+		if (dl3.DRinsertKey("DaveR Number1010a","DaveR Number1010a"))
+			System.out.println("DLT - insert 1010a successful siz="+dl3.DRsize()+" 1010a="+
+				dl3.DRgetKey("DaveR Number1010a"));
+		else
+			System.out.println("DLT - insert 1010a fail");
+
+		try{
+			dl3.DRsortNoKeyDsc("col");
+		}catch (NoSuchFieldException nsf){
+			System.out.println("DLT - nsf null");
+		}
+		System.out.println("DLT - sort obj 1st="+dl3.DRgetFirst()+" lst="+dl3.DRgetLast());
+
 	}
 	//======================================================
     	public char get2DArray(DRList<DRList<Character>> dl4, int i,int j){
