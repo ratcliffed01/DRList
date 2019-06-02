@@ -1,5 +1,3 @@
-// to compile do from folder above c:\>javac BJSS_TEST\PricingBasket.java
-// to compile do from folder above c:\>java BJSS_TEST.PricingBasket SOUP
 
 package DRList;
 
@@ -14,7 +12,11 @@ import DRList.DRArrayList;
 import DRList.DRIndex;
 import DRList.DRBTree;
 import DRList.DRCode;
+import DRList.DRFind;
 import DRList.DRListTBL;
+import DRList.DRNoMatchException;
+
+import java.lang.reflect.*;
 
 public class DRCode<T>
 {
@@ -25,13 +27,91 @@ public class DRCode<T>
     	}
     	//===================================================================================
     	public static void debug1(String msg){
-		//System.out.println(msg);
-    	}
-    	//===================================================================================
-    	public static void debug2(String msg){
-		//System.out.println(msg);
+		System.out.println(msg);
     	}
 
+	//================================================
+	public DRListTBL<T> DRinsert(String sk, T obj, DRListTBL<T> drl) throws DRListException{
+
+		try
+		{
+			long sti = System.currentTimeMillis();
+			DRCode<T> drcode = new DRCode<T>();
+
+			DRArrayList<T> dl = drl.dl;
+			DRArrayList<T> fdl = drl.fdl;
+			DRIndex<T> di = drl.di;
+			DRIndex<T> fdi = drl.fdi;
+
+			DRBTree bt = drl.bt;
+			DRBTree root = drl.root;
+
+			int cnt = 0;
+
+			if (dl.prev == null){			//empty list so add first
+				if (sk == null) drl = drcode.DRadd(obj,drl);
+				if (sk != null) drl = drcode.DRaddkey(obj,sk,drl);
+			}else{
+				//currency should have been set so check next to see if deleted
+				if (dl.next.deleted){
+					dl = dl.next;			//set currency to deleted item and reuse
+					dl.obj = obj;
+					dl.deleted = false;
+				}else{
+					DRArrayList<T> ndl = new DRArrayList<T>();
+					ndl.count = dl.count + 1;
+					drl.size++;
+					if (sk == null) ndl.sortKey = null;
+					if (sk != null) ndl.sortKey = sk;
+					ndl.obj = obj;
+					ndl.prev = dl;
+					ndl.next = dl.next;
+					dl.next.prev = ndl;
+					dl.next = ndl;
+					dl = ndl;
+	
+					cnt = dl.count;
+
+					//element added now update index
+					for (int i = dl.count; i < drl.size; i++){
+						dl = dl.next;
+						dl.count++;
+					}
+					//clear index before insert
+					di = fdi;
+					di = null;
+					fdi = null;
+					DRIndex<T> di1 = new DRIndex<T>();
+					DRIndex<T> fdi1 = new DRIndex<T>();
+
+					//set currency to start and  reinsert index
+					dl = fdl;
+					for (int i = 0; i < drl.size; i++){
+						dl = dl.next;
+						if (dl.count%100 == 0){
+							di1 = drcode.indAdd(dl,di1,fdi1);
+							//debug1("ins - dc="+dl.count+" i="+i);
+							if (di1.ind == 1) fdi1 = di1;
+						}
+					}
+					di = di1;
+					fdi = fdi1;
+					if (sk != null) bt = drcode.DRaddBTree(sk,cnt,cnt,bt,root);
+
+				}
+			}
+
+			drl.dl = dl;
+			drl.di = di;
+			drl.bt = bt;
+			debug1("insnk - elapsed="+(sti - System.currentTimeMillis())+"ms");
+		}catch (Exception ex){
+			//debug1("excep - "+ex.printStackTrace());
+			throw new DRListException();
+		}
+
+		return drl;
+	}
 	//================================================
 	//currency needs to be set first using DRget or DRgetKey
 	public DRListTBL<T> DRset(T obj, DRListTBL<T> drl){
@@ -288,7 +368,7 @@ public class DRCode<T>
 		debug("rli - get1st="+fdl.count+" fsk="+fdl.sortKey);
 
 		DRArrayList<T>[] xx = drcode.toArraySub(dl,fdl,drl.size);
-		debug2("rli - xxl="+xx.length+" xsk="+xx[xx.length - 1].sortKey+" xcnt="+xx[xx.length - 1].count);
+		debug("rli - xxl="+xx.length+" xsk="+xx[xx.length - 1].sortKey+" xcnt="+xx[xx.length - 1].count);
 
 		dl = fdl;
 		drl = drcode.clear(drl);
@@ -302,7 +382,7 @@ public class DRCode<T>
 		//get currency to restart
 		drl = drcode.DRgetEle(saveCnt,drl);
 
-		debug2("rli - size="+drl.size+" lastcnt="+fdl.prev.count+" ti="+(System.currentTimeMillis() - sti)+"ms");
+		debug("rli - size="+drl.size+" lastcnt="+fdl.prev.count+" ti="+(System.currentTimeMillis() - sti)+"ms");
 
 		return drl;
 	}
@@ -616,7 +696,7 @@ public class DRCode<T>
 					drl = drcode.nextNonDeleted(drl);
 					if (drl.success == -1) return drl;
 					dl = drl.dl;
-					debug1("ge - dlc="+dl.count+" sk="+dl.sortKey+" del="+dl.deleted);
+					debug("ge - dlc="+dl.count+" sk="+dl.sortKey+" del="+dl.deleted);
 				}
 			}
 		}
@@ -668,7 +748,7 @@ public class DRCode<T>
 			di.indPrev = di;
 			di.indNext = di;
 			fdi = di;
-			//debug1("1st ind diind="+di.ind+" xdlcnt="+xdl.count+" fdi="+fdi.ind);
+			//debug("1st ind diind="+di.ind+" xdlcnt="+xdl.count+" fdi="+fdi.ind);
 		}
 
 		//debug("1st ind diind="+di.ind+" xdlcnt="+xdl.count+" fdi="+fdi.ind);
@@ -683,7 +763,7 @@ public class DRCode<T>
 			fdi.indPrev = ndi;
 			ldi.indNext = ndi;
 			di = ndi;
-			//debug1("new ind diind="+di.ind);
+			//debug("new ind diind="+di.ind);
 		}
 		//debug("cnt="+cnt+" diind="+di.ind+" rem="+cnt%1000+" find="+fdi.ind+" dlc="+xdl.count);
 
@@ -715,8 +795,10 @@ public class DRCode<T>
 		boolean ret1 = false;
 		int i = 0;
 		while (i < size){
-			ret1 = dl.sortKey.matches("^[0-9]+$");
-			if (ret1) dl.sortKey = "0000000000".substring(dl.sortKey.length()) + dl.sortKey;
+			if (dl.sortKey != null){
+				ret1 = dl.sortKey.matches("^[0-9]+$");
+				if (ret1) dl.sortKey = "0000000000".substring(dl.sortKey.length()) + dl.sortKey;
+			}
 			if (!dl.deleted){
 				dl.count = i + 1;		//ensure count is sequential with none missing
 			 	dla[i] = dl;
@@ -724,7 +806,7 @@ public class DRCode<T>
 			}
 			dl = dl.next;
 		}
-		debug1("ta - size="+size+" dlacnt="+dla.length+" i="+i+" dla0="+dla[0].sortKey+
+		debug("ta - size="+size+" dlacnt="+dla.length+" i="+i+" dla0="+dla[0].sortKey+
 			" ldla="+dla[dla.length - 1].sortKey);
 
 		return dla;
@@ -837,9 +919,9 @@ public class DRCode<T>
 				if (i == 0) drl.fdl = drl.dl;
 			}
 		}else{
-			debug1("tdl - xxl="+xx.length+" xsk="+xx[0].sortKey);
+			debug("tdl - xxl="+xx.length+" xsk="+xx[0].sortKey);
 			for (int i = 0; i < size; i++){
-				//debug1("tdl - i = "+i+" "+xx[i].sortKey);
+				//debug("tdl - i = "+i+" "+xx[i].sortKey);
 				drl = drcode.DRadd(xx[i].obj,drl);
 				//stor the key seperately as the BTree needs to be added out of sort order
 				drl.dl.sortKey = xx[i].sortKey;
@@ -890,7 +972,7 @@ public class DRCode<T>
 		fdl = null;
 
 		di = null;
-		fdl = null;
+		fdi = null;
 
 		if (bt != null){
 			bt = root;
@@ -994,7 +1076,7 @@ public class DRCode<T>
 		dl = fdl.prev;
 		drl.dl = dl;
 
-		debug1("gl - lastcnt="+dl.count);
+		debug("gl - lastcnt="+dl.count);
 		if (dl.deleted) drl = drcode.prevNonDeleted(drl);
 
 		return drl;
