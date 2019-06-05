@@ -1,4 +1,4 @@
-// to compile do from folder above C:\projects\DRList>javac -cp ../ DRList.java
+// to compile do from folder above C:\projects\DRList>javac -Xlint:unchecked -cp ../ DRList.java
 //========================================================================
 //	Author - David Ratcliffe	Version - 1.2	Date - 21/03/2019
 //
@@ -41,23 +41,26 @@
 //					- sorts ascending on field in object which is diffeent from sorkkey
 //	void DRsortNoKeyDsc(String fieldName) throws NoSuchFieldException
 //					- sorts descending on field in object which is diffeent from sorkkey
-//	T[] DRFind(String fieldName, String operator, String value) 
-//					- returns an Object array, searches the collection on a particular field within the object or
+//	DRFindObjVO<T> DRFind(String fieldName, String operator, String value) 
+//					- returns class DRFindObjVO<T> which contains T[] array with DRFindAnd, DRFindOr and DRFMinus,
+//					  searches the collection on a particular field within the object or
 //					  on the whole object if just 1 field. Fieldname can be null of a valid fieldname, the
 //					  operator can be ">","<","Like","Min","Max", the value is null for Max/Min else is passed as 
 //					  a String and will be converted to the same field type of the fieldname. If fieldname has //					  asc/dsc delimited by a space then the return object array is sorted ascending/descending
 //					  accordingly 
-//	T[] DRFindAnd(String fieldName, String operator, String value, T[] obj)
-//					- based on DRFind and allows searching on the Object array passed using fieldName, operator
-//					  and value as extra criteria. These parameters are the same DRFind. A reduced Object array
-//					  is passed back.
-//	T[] DRFindOr(String fieldName, String operator, String value, T[] obj)
+//	DRFindObjVO<T> DRFindAnd(String fieldName, String operator, String value) 
+//					- based on DRFind and allows searching on the Object array passed via class DRFindObjVO<T>
+//					  using fieldName, operator and value as extra criteria. These parameters are the same DRFind. 
+//					  A reduced Object array via class DRFindObjVO<T> is passed back.
+//	DRFindObjVO<T> DRFindOr(String fieldName, String operator, String value)
 //					- Based on DRFind and returns an Object array combined with the passed Object array. The
 //					  search criteria is the same as DRFind and serches the whole collection and combines
 //					  the 2 arrays.
-//	T[] DRFindMinus(String fieldName, String operator, String value, T[] obj)
+//	DRFindObjVO<T> DRFindMinus(String fieldName, String operator, String value)
 //					- Based on DRFind and returns an Object array with the new selection criteria removed 
-//
+//	T[] getObjArray()		- returns the Object array from the DRFindObjVO<T> and is used at the end ie
+// Object[] obj = dl4.DRFind("surName","=","Number100").DRFindOr("surName","=","Number101").DRFindOr("surName","=","Number102").getObjArray();
+
 package DRList;
 
 import java.io.*;
@@ -85,32 +88,11 @@ public class DRList<T>
 		//System.out.println(msg);
     	}
 	//================================================
-	public T[] DRFind(String fieldName, String operator, String value)
+	public DRFindObjVO<T> DRFind(String fieldName, String operator, String value)
 		throws DRNoMatchException
 	{
 		DRFind<T> drf = new DRFind<T>();
 		return drf.DRFind(fieldName,operator,value,drl);
-	}
-	//================================================
-	public T[] DRFindAnd(String fieldName, String operator, String value, T[] obj)
-		throws DRNoMatchException
-	{
-		DRFind<T> drf = new DRFind<T>();
-		return drf.DRFindAnd(fieldName,operator,value,obj);
-	}
-	//================================================
-	public T[] DRFindOr(String fieldName, String operator, String value, T[] obj)
-		throws DRNoMatchException
-	{
-		DRFind<T> drf = new DRFind<T>();
-		return drf.DRFindOr(fieldName,operator,value,drl,obj);
-	}
-	//================================================
-	public T[] DRFindMinus(String fieldName, String operator, String value, T[] obj)
-		throws DRNoMatchException
-	{
-		DRFind<T> drf = new DRFind<T>();
-		return drf.DRFindMinus(fieldName,operator,value,obj);
 	}
 	//=========================================================
 	public void DRsortNoKeyAsc(String fieldName) throws DRNoMatchException
