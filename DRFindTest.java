@@ -39,27 +39,27 @@ public class DRFindTest
 
 		knapVO vos2 = new knapVO();
 		try{
-			Object[] obj = dl1.DRFind("price","=","260.0");
+			Object[] obj = dl1.DRFind("price","=","260.0").getObjArray();
 			vos2 = (knapVO)obj[0];
 			System.out.println("DLT - eq found "+vos2.col+" "+vos2.price);
 
-			obj = dl1.DRFind("price",">","260.0");
+			obj = dl1.DRFind("price",">","260.0").getObjArray();
 			vos2 = (knapVO)obj[0];
 			System.out.println("DLT - gt found "+vos2.col+" "+vos2.price);
 
-			obj = dl1.DRFind("price","<","260.0");
+			obj = dl1.DRFind("price","<","260.0").getObjArray();
 			vos2 = (knapVO)obj[0];
 			System.out.println("DLT - lt found "+vos2.col+" "+vos2.price);
 
-			obj = dl1.DRFind("col","Like","yell");
+			obj = dl1.DRFind("col","Like","yell").getObjArray();
 			vos2 = (knapVO)obj[0];
 			System.out.println("DLT - like found "+vos2.col+" "+vos2.price);
 
-			obj = dl1.DRFind("price","Min","");
+			obj = dl1.DRFind("price","Min","").getObjArray();
 			vos2 = (knapVO)obj[0];
 			System.out.println("DLT - min found "+vos2.col+" "+vos2.price);
 
-			obj = dl1.DRFind("price","Max","");
+			obj = dl1.DRFind("price","Max","").getObjArray();
 			vos2 = (knapVO)obj[0];
 			System.out.println("DLT - max found "+vos2.col+" "+vos2.price);
 
@@ -96,25 +96,25 @@ public class DRFindTest
 		long sti = System.currentTimeMillis();
 		try{
 			sti = System.currentTimeMillis();
-			Object[] obj = dl3.DRFind("","=","DaveR Number1011");
+			Object[] obj = dl3.DRFind("","=","DaveR Number1011").getObjArray();
 			System.out.println("DLT - eq found "+(String)obj[0]+" ol="+obj.length);
 
-			obj = dl3.DRFind("dsc",">","DaveR Number9990");
+			obj = dl3.DRFind("dsc",">","DaveR Number9990").getObjArray();
 			System.out.println("DLT - gt9011 found "+(String)obj[0]+" ol="+obj.length);
 
-			obj = dl3.DRFind("","<","DaveR Number1011");
+			obj = dl3.DRFind("","<","DaveR Number1011").getObjArray();
 			System.out.println("DLT - lt found "+(String)obj[0]+" ol="+obj.length);
 
-			obj = dl3.DRFind("","Like","99");
+			obj = dl3.DRFind("","Like","99").getObjArray();
 			System.out.println("DLT - like found 1st="+(String)obj[0]+" 2nd="+(String)obj[1]+" ol="+obj.length);
 
-			obj = dl3.DRFind("","Min","");
+			obj = dl3.DRFind("","Min","").getObjArray();
 			System.out.println("DLT - min found 1st="+(String)obj[0]+" ol="+obj.length);
 
-			obj = dl3.DRFind("","Max","");
+			obj = dl3.DRFind("","Max","").getObjArray();
 			System.out.println("DLT - max found 1st="+(String)obj[0]+" ol="+obj.length);
 
-			obj = dl3.DRFindAnd("","<","DaveR Number1111",dl3.DRFind("",">","DaveR Number1011"));
+			obj = dl3.DRFind("",">","DaveR Number1011").DRFindAnd("","<","DaveR Number1111").getObjArray();
 			System.out.println("DLT - ltand found "+(String)obj[0]+" ol="+obj.length);
 
 			System.out.println("DLT - ti="+(System.currentTimeMillis() - sti)+"ms");
@@ -163,27 +163,27 @@ public class DRFindTest
 
 		sti = System.currentTimeMillis();
 		try{
-			Object[] obj = dl4.DRFind("salary","=","30000.0");
+			Object[] obj = dl4.DRFind("salary","=","30000.0").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - eq found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
 
-			obj = dl4.DRFind("salary",">","34000.0");
+			obj = dl4.DRFind("salary",">","34000.0").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - gt found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
 
-			obj = dl4.DRFind("salary","<","25500.0");
+			obj = dl4.DRFind("salary","<","25500.0").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - lt found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
 
-			obj = dl4.DRFind("surName","Like","999");
+			obj = dl4.DRFind("surName","Like","999").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - like found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
 
-			obj = dl4.DRFind("salary","Min","");
+			obj = dl4.DRFind("salary","Min","").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - min found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
 
-			obj = dl4.DRFind("salary","Max","");
+			obj = dl4.DRFind("salary","Max","").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - max found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
 
@@ -194,17 +194,17 @@ public class DRFindTest
 
 		//error section
 		try{
-			Object[] obj = dl4.DRFind("fName","=","30000.0");
+			Object[] obj = dl4.DRFind("fName","=","30000.0").getObjArray();
 		}catch (DRNoMatchException nsm){
 			System.out.println("DLT - nsm "+nsm.getMessage());
 		}
 		try{
-			Object[] obj = dl4.DRFind("firstName","Like","David");
+			Object[] obj = dl4.DRFind("firstName","Like","David").getObjArray();
 		}catch (DRNoMatchException nsm){
 			System.out.println("DLT - nsm nolike "+nsm.getMessage());
 		}
 		try{
-			Object[] obj = dl4.DRFind("salary",">","David");
+			Object[] obj = dl4.DRFind("salary",">","David").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - sal > David ol="+obj.length+" o0="+nvo.salary);
 		}catch (DRNoMatchException nsm){
@@ -213,35 +213,35 @@ public class DRFindTest
 
 		sti = System.currentTimeMillis();
 		try{
-			Object[] obj = dl4.DRFindAnd("salary","<","31000.0",dl4.DRFind("salary",">","30000.0"));
+			Object[] obj = dl4.DRFind("salary",">","30000.0").DRFindAnd("salary","<","31000.0").getObjArray();
 			nvo = (nameVO)obj[obj.length - 1];
 			System.out.println("DLT - and<> found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
 
-			obj = dl4.DRFindAnd("surName dsc","Like","999",dl4.DRFind("salary",">","32000.0"));
+			obj = dl4.DRFind("salary",">","32000.0").DRFindAnd("surName dsc","Like","999").getObjArray();
 			for (int i = 0; i < obj.length; i++){
 				nvo = (nameVO)obj[i];
 				System.out.println("DLT - >Likedsc found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
 			}
 
-			obj = dl4.DRFindAnd("firstName","Min","",
-				dl4.DRFindAnd("surName","Like","999",dl4.DRFind("salary",">","32000.0")));
+			obj = dl4.DRFind("salary",">","32000.0").DRFindAnd("surName","Like","999").DRFindAnd("firstName","Min","")
+				.getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - Min>Like found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
 
-			obj = dl4.DRFindOr("surName","=","Number102",
-				dl4.DRFindOr("surName","=","Number101",dl4.DRFind("surName","=","Number100")));
+			obj = dl4.DRFind("surName","=","Number100").DRFindOr("surName","=","Number101").DRFindOr("surName","=","Number102")
+				.getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - or3= found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
 
-			obj = dl4.DRFindOr("salary",">","34800.0",dl4.DRFind("surName",">","Number9900"));
+			obj = dl4.DRFind("surName",">","Number9900").DRFindOr("salary",">","34800.0").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - or2> found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
 
-			obj = dl4.DRFindAnd("salary","Like","99",dl4.DRFind("salary",">","34800.0"));
+			obj = dl4.DRFind("salary",">","34800.0").DRFindAnd("salary","Like","99").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - sallike99 ol="+obj.length+" o0="+nvo.salary);
 
-			obj = dl4.DRFindMinus("salary","Like","99",dl4.DRFind("salary dsc",">","34800.0"));
+			obj = dl4.DRFind("salary dsc",">","34800.0").DRFindMinus("salary","Like","99").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - minussallike99 ol="+obj.length+" o0="+nvo.salary);
 
@@ -251,37 +251,37 @@ public class DRFindTest
 		System.out.println("DLT - ti="+(System.currentTimeMillis() - sti)+"ms");
 
 		try{
-			Object[] obj = dl4.DRFindAnd("firstName","=","David",dl4.DRFind("salary",">","34990.0"));
+			Object[] obj = dl4.DRFind("salary",">","34990.0").DRFindAnd("firstName","=","David").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - sal > &fn=David ol="+obj.length+" o0="+nvo.salary);
 		}catch (DRNoMatchException nsm){
 			System.out.println("DLT - nsm not= "+nsm.getMessage());
 		}
 		try{
-			Object[] obj = dl4.DRFindAnd("fn","=","David",dl4.DRFind("sal",">","34990.0"));
+			Object[] obj = dl4.DRFind("sal",">","34990.0").DRFindAnd("fn","=","David").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - sal>&invfn ol="+obj.length+" o0="+nvo.salary);
 		}catch (DRNoMatchException nsm){
 			System.out.println("DLT - dnm invfield "+nsm.getMessage());
 		}
 		try{
-			Object[] obj = dl4.DRFindAnd("salary","<","34980.0",dl4.DRFind("salary",">","34990.0"));
+			Object[] obj = dl4.DRFind("salary",">","34990.0").DRFindAnd("salary","<","34980.0").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - sal<> ol="+obj.length+" o0="+nvo.salary);
 		}catch (DRNoMatchException nsm){
 			System.out.println("DLT - dnm <>sal "+nsm.getMessage());
 		}
 		try{
-			Object[] obj = dl4.DRFindAnd("","","",dl4.DRFind("salary",">","34990.0"));
+			Object[] obj = dl4.DRFind("salary asc",">","34990.0").DRFindAnd("salary","=","34996.0").getObjArray();
 			nvo = (nameVO)obj[0];
-			System.out.println("DLT - nulland ol="+obj.length+" o0="+nvo.salary);
+			System.out.println("DLT - findalt ol="+obj.length+" o0="+nvo.salary);
 		}catch (DRNoMatchException nsm){
 			System.out.println("DLT - nulland "+nsm.getMessage());
 		}
 
 		dl4.DRclear();
 		try{
-			Object[] obj = dl4.DRFindAnd("salary","<","34980.0",dl4.DRFind("salary",">","34990.0"));
+			Object[] obj = dl4.DRFind("salary",">","34990.0").DRFindAnd("salary","<","34980.0").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - dl4clear ol="+obj.length+" o0="+nvo.salary);
 		}catch (DRNoMatchException nsm){

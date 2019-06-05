@@ -13,6 +13,7 @@ import DRList.DRBTree;
 import DRList.DRCode;
 import DRList.DRListTBL;
 import DRList.DRNoMatchException;
+import DRList.DRFindObjVO;
 
 import java.lang.reflect.*;
 
@@ -109,7 +110,7 @@ public class DRFind<T>
 		return vo;
 	}
 	//================================================
-	public T[] DRFind(String fieldName, String operator, String value, DRListTBL<T> drl) 
+	public T[] DRFindObj(String fieldName, String operator, String value, DRListTBL<T> drl) 
 		throws DRNoMatchException
 	{
 		DRFind<T> drf = new DRFind<T>();
@@ -122,36 +123,24 @@ public class DRFind<T>
 		return obj;
 	}
 	//================================================
-	public T[] DRFindAnd(String fieldName, String operator, String value, T[] obj) 
+	public DRFindObjVO<T> DRFind(String fieldName, String operator, String value, DRListTBL<T> drl) 
 		throws DRNoMatchException
 	{
 		DRFind<T> drf = new DRFind<T>();
-		DRCode<T> drc = new DRCode<T>();
-		DRListTBL<T> ndrl = new DRListTBL<T>();
 		DRFindVO vo = new DRFindVO();
-
-		for (int i = 0; i < obj.length; i++)
-			drc.DRadd(obj[i],ndrl);
-
-		T[] obj1 = drf.DRFind(fieldName, operator, value, ndrl);
-
-		return obj1;
-	}
-	//================================================
-	public T[] DRFindOr(String fieldName, String operator, String value, DRListTBL<T> drl, T[] obj) 
-		throws DRNoMatchException
-	{
-		DRFind<T> drf = new DRFind<T>();
-		DRCode<T> drc = new DRCode<T>();
 
 		if (drl.fdl.obj == null) throw new DRNoMatchException("ListTbl is null");
 
-		T[] obj1 = drf.DRFind(fieldName, operator, value, drl);
-		T[] obj2 = drf.combineObjs(obj,obj1);
-		return obj2;
+		vo = drf.validateField(fieldName, value, vo, drl, operator);
+		T[] obj = drf.DRFindInvokeAlt(drf.getOpCnt(operator), vo, drl);
+
+		DRFindObjVO<T> avo = new DRFindObjVO<T>();
+		avo.setObjArray(obj);
+		avo.setDRL(drl);
+		return avo;
 	}
 	//================================================
-	public T[] DRFindMinus(String fieldName, String operator, String value, T[] obj) 
+	public DRFindObjVO<T> FindAnd(String fieldName, String operator, String value, T[] obj) 
 		throws DRNoMatchException
 	{
 		DRFind<T> drf = new DRFind<T>();
@@ -162,11 +151,44 @@ public class DRFind<T>
 		for (int i = 0; i < obj.length; i++)
 			drc.DRadd(obj[i],ndrl);
 
-		T[] obj1 = drf.DRFind(fieldName, operator, value, ndrl);
+		DRFindObjVO<T> avo = drf.DRFind(fieldName, operator, value, ndrl);
+		return avo;
+	}
+	//================================================
+	public DRFindObjVO<T> FindOr(String fieldName, String operator, String value, DRListTBL<T> drl, T[] obj) 
+		throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		DRCode<T> drc = new DRCode<T>();
+		DRFindObjVO<T> avo = new DRFindObjVO<T>();
+
+		if (drl.fdl.obj == null) throw new DRNoMatchException("ListTbl is null");
+
+		T[] obj1 = drf.DRFindObj(fieldName, operator, value, drl);
+		T[] obj2 = drf.combineObjs(obj,obj1);
+		avo.setObjArray(obj2);
+		avo.setDRL(drl);
+		return avo;
+	}
+	//================================================
+	public DRFindObjVO<T> FindMinus(String fieldName, String operator, String value, T[] obj) 
+		throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		DRCode<T> drc = new DRCode<T>();
+		DRListTBL<T> ndrl = new DRListTBL<T>();
+		DRFindVO vo = new DRFindVO();
+
+		for (int i = 0; i < obj.length; i++)
+			drc.DRadd(obj[i],ndrl);
+
+		T[] obj1 = drf.DRFindObj(fieldName, operator, value, ndrl);
 
 		T[] obj2 = drf.minusObjs(obj,obj1);
+		DRFindObjVO<T> avo = new DRFindObjVO<T>();
 
-		return obj2;
+		avo.setObjArray(obj2);
+		return avo;
 	}
 	//==============================================================
 	public T[] minusObjs(T[] obj1, T[] obj2) throws DRNoMatchException
@@ -203,6 +225,16 @@ public class DRFind<T>
 	}
 	//================================================
 	public T[] DRFindInvoke(int opCnt, DRFindVO vo, DRListTBL<T> drl) throws DRNoMatchException
+	{
+		debug1("finv - start "+opCnt);
+
+		DRFind<T> drf = new DRFind<T>();
+
+		T[] obj = drf.DRFindEqGtLt(vo,drl,opCnt);
+		return obj;
+	}
+	//================================================
+	public T[] DRFindInvokeAlt(int opCnt, DRFindVO vo, DRListTBL<T> drl) throws DRNoMatchException
 	{
 		debug1("finv - start "+opCnt);
 
