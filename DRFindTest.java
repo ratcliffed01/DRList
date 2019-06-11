@@ -241,7 +241,7 @@ public class DRFindTest
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - sallike99 ol="+obj.length+" o0="+nvo.salary);
 
-			obj = dl4.DRFind("salary dsc",">","34800.0").DRFindMinus("salary","Like","99").getObjArray();
+			obj = dl4.DRFind("salary asc",">","34800.0").DRFindMinus("salary","Like","99").getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - minussallike99 ol="+obj.length+" o0="+nvo.salary);
 

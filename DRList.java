@@ -1,9 +1,10 @@
 // to compile do from folder above C:\projects\DRList>javac -Xlint:unchecked -cp ../ DRList.java
 //========================================================================
-//	Author - David Ratcliffe	Version - 1.2	Date - 21/03/2019
+//	Author - David Ratcliffe	Version - 1.3	Date - 21/03/2019
 //
 //	ver1.1	- Add new functions to allow duplicates in BTree and reIndex, plus fix some bugs
 //	ver1.2	- Add DRFind, new search facility and sort on Objects field
+//	ver1.3	- Add new VO class DRFindObjVO, to call findand, findor, compare all primitive types and BigDecimal
 //
 //	programs - DRList.java, DRArrayList.java, DRIndex.java, DRBTree.java, DRCode.java, DRListTBL
 //
@@ -59,7 +60,15 @@
 //	DRFindObjVO<T> DRFindMinus(String fieldName, String operator, String value)
 //					- Based on DRFind and returns an Object array with the new selection criteria removed 
 //	T[] getObjArray()		- returns the Object array from the DRFindObjVO<T> and is used at the end ie
-// Object[] obj = dl4.DRFind("surName","=","Number100").DRFindOr("surName","=","Number101").DRFindOr("surName","=","Number102").getObjArray();
+// 				Object[] obj = dl4.DRFind("surName","=","Number100").DRFindOr("surName","=","Number101").getObjArray();
+//
+//	DRList<T> getDRList()		- Returns the Object array in the form of DRList<T> and can be accessed via DRList.get(0) ie
+// 				DRList<nameVO> ndrl = dl4.DRFind("surName","=","Number100").DRFindOr("surName","=","Number101").getDRList();
+//
+//	List<T> getArrayList()		- Returns the Object array in the form of ArrayList<T> and can be access via normal List methods
+// 				List<nameVO> nlst = dl4.DRFind("surName","=","Number100").DRFindOr("surName","=","Number101").getArrayList();
+//	T[] DRFindObject(String fieldName, String operator, String value, T[] obj)
+//					- Returns an Object array, is based on DRFindAnd and a Object array is passed as a parameter.
 
 package DRList;
 
@@ -93,6 +102,13 @@ public class DRList<T>
 	{
 		DRFind<T> drf = new DRFind<T>();
 		return drf.DRFind(fieldName,operator,value,drl);
+	}
+	//================================================
+	public T[] DRFindObject(String fieldName, String operator, String value, T[] obj)
+		throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		return drf.DRFindObject(fieldName,operator,value,obj);
 	}
 	//=========================================================
 	public void DRsortNoKeyAsc(String fieldName) throws DRNoMatchException

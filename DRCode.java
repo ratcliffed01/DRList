@@ -38,72 +38,61 @@ public class DRCode<T>
 			long sti = System.currentTimeMillis();
 			DRCode<T> drcode = new DRCode<T>();
 
-			DRArrayList<T> dl = drl.dl;
-			DRArrayList<T> fdl = drl.fdl;
-			DRIndex<T> di = drl.di;
-			DRIndex<T> fdi = drl.fdi;
-
-			DRBTree bt = drl.bt;
-			DRBTree root = drl.root;
-
 			int cnt = 0;
 
-			if (dl.prev == null){			//empty list so add first
+			if (drl.dl.prev == null){			//empty list so add first
 				if (sk == null) drl = drcode.DRadd(obj,drl);
 				if (sk != null) drl = drcode.DRaddkey(obj,sk,drl);
 			}else{
 				//currency should have been set so check next to see if deleted
-				if (dl.next.deleted){
-					dl = dl.next;			//set currency to deleted item and reuse
-					dl.obj = obj;
-					dl.deleted = false;
+				if (drl.dl.next.deleted){
+					drl.dl = drl.dl.next;			//set currency to deleted item and reuse
+					drl.dl.obj = obj;
+					drl.dl.deleted = false;
 				}else{
 					DRArrayList<T> ndl = new DRArrayList<T>();
-					ndl.count = dl.count + 1;
+					ndl.count = drl.dl.count + 1;
 					drl.size++;
 					if (sk == null) ndl.sortKey = null;
 					if (sk != null) ndl.sortKey = sk;
 					ndl.obj = obj;
-					ndl.prev = dl;
-					ndl.next = dl.next;
-					dl.next.prev = ndl;
-					dl.next = ndl;
-					dl = ndl;
+					ndl.prev = drl.dl;
+					ndl.next = drl.dl.next;
+					drl.dl.next.prev = ndl;
+					drl.dl.next = ndl;
+					drl.dl = ndl;
 	
-					cnt = dl.count;
+					cnt = drl.dl.count;
 
 					//element added now update index
-					for (int i = dl.count; i < drl.size; i++){
-						dl = dl.next;
-						dl.count++;
+					for (int i = drl.dl.count; i < drl.size; i++){
+						drl.dl = drl.dl.next;
+						drl.dl.count++;
 					}
 					//clear index before insert
-					di = fdi;
-					di = null;
-					fdi = null;
+					drl.di = drl.fdi;
+					drl.di = null;
+					drl.fdi = null;
 					DRIndex<T> di1 = new DRIndex<T>();
 					DRIndex<T> fdi1 = new DRIndex<T>();
 
 					//set currency to start and  reinsert index
-					dl = fdl;
+					drl.dl = drl.fdl;
 					for (int i = 0; i < drl.size; i++){
-						dl = dl.next;
-						if (dl.count%100 == 0){
-							di1 = drcode.indAdd(dl,di1,fdi1);
-							//debug1("ins - dc="+dl.count+" i="+i);
+						drl.dl = drl.dl.next;
+						if (drl.dl.count%100 == 0){
+							di1 = drcode.indAdd(drl.dl,di1,fdi1);
+							//debug1("ins - dc="+drl.dl.count+" i="+i);
 							if (di1.ind == 1) fdi1 = di1;
 						}
 					}
-					di = di1;
-					fdi = fdi1;
-					if (sk != null) bt = drcode.DRaddBTree(sk,cnt,cnt,bt,root);
+					drl.di = di1;
+					drl.fdi = fdi1;
+					if (sk != null) drl.bt = drcode.DRaddBTree(sk,cnt,cnt,drl.bt,drl.root);
 
 				}
 			}
 
-			drl.dl = dl;
-			drl.di = di;
-			drl.bt = bt;
 			debug1("insnk - elapsed="+(sti - System.currentTimeMillis())+"ms");
 		}catch (Exception ex){
 			//debug1("excep - "+ex.printStackTrace());
@@ -321,18 +310,12 @@ public class DRCode<T>
 		long sti = System.currentTimeMillis();
 		DRCode<T> drcode = new DRCode<T>();
 
-		DRArrayList<T> dl = drl.dl;
-		DRArrayList<T> fdl = drl.fdl;
-
 		//currency on dl should be set already
-		if (dl == null) return null;
+		if (drl.dl == null) return null;
 
-		dl.deleted = true;				//set the delete flag
+		drl.dl.deleted = true;				//set the delete flag
 		drl.deleteNum++;
 		drl.size--;
-
-		drl.dl = dl;
-		drl.fdl = fdl;
 
 		if (drl.dl.sortKey != null){
 			drl = drcode.deleteBTree(drl.dl.count,drl.dl.sortKey,drl);	//set drbtree delete flag to true	
@@ -360,17 +343,14 @@ public class DRCode<T>
 		long sti = System.currentTimeMillis();
 		DRCode<T> drcode = new DRCode<T>();
 
-		DRArrayList<T> dl = drl.dl;
-		DRArrayList<T> fdl = drl.fdl;
+		int saveCnt = drl.dl.count;
 
-		int saveCnt = dl.count;
+		debug("rli - get1st="+drl.fdl.count+" fsk="+drl.fdl.sortKey);
 
-		debug("rli - get1st="+fdl.count+" fsk="+fdl.sortKey);
-
-		DRArrayList<T>[] xx = drcode.toArraySub(dl,fdl,drl.size);
+		DRArrayList<T>[] xx = drcode.toArraySub(drl.dl,drl.fdl,drl.size);
 		debug("rli - xxl="+xx.length+" xsk="+xx[xx.length - 1].sortKey+" xcnt="+xx[xx.length - 1].count);
 
-		dl = fdl;
+		drl.dl = drl.fdl;
 		drl = drcode.clear(drl);
 
 		drl = drcode.toDRListsub(xx,drl);
@@ -382,7 +362,7 @@ public class DRCode<T>
 		//get currency to restart
 		drl = drcode.DRgetEle(saveCnt,drl);
 
-		debug("rli - size="+drl.size+" lastcnt="+fdl.prev.count+" ti="+(System.currentTimeMillis() - sti)+"ms");
+		debug("rli - size="+drl.size+" lastcnt="+drl.fdl.prev.count+" ti="+(System.currentTimeMillis() - sti)+"ms");
 
 		return drl;
 	}
@@ -449,50 +429,41 @@ public class DRCode<T>
 	public DRListTBL<T> DRadd(T obj1,DRListTBL<T> drl){
 
 		DRCode<T> drcode = new DRCode<T>();
-		DRArrayList<T> dl = drl.dl;
-		DRArrayList<T> fdl = drl.fdl;
-		DRIndex<T> fdi = drl.fdi;
-		DRIndex<T> di = drl.di;
-
 		DRArrayList<T> ldl = new DRArrayList<T>();		//last ele
 
-		dl = fdl;						//set to 1st
+		drl.dl = drl.fdl;						//set to 1st
 
 		//debug("add obj1 ");
 
-		if (dl.prev == null){
-			dl.count = 1;
+		if (drl.dl.prev == null){
+			drl.dl.count = 1;
 			drl.size = 1;
-			dl.sortKey = null;
-			dl.obj = obj1;
-			dl.prev = dl;
-			dl.next = dl;
-			fdl = dl;
+			drl.dl.sortKey = null;
+			drl.dl.obj = obj1;
+			drl.dl.prev = drl.dl;
+			drl.dl.next = drl.dl;
+			drl.fdl = drl.dl;
 			debug("add key 1");
 		}else{
-			ldl = fdl.prev;				//1st prev goes to last element
+			ldl = drl.fdl.prev;				//1st prev goes to last element
 			DRArrayList<T> ndl = new DRArrayList<T>();
 			ndl.count = ldl.count + 1;
 			drl.size++;
 			ndl.sortKey = null;
 			ndl.obj = obj1;
 			ndl.prev = ldl;
-			ndl.next = fdl;			//last next = 1st
-			fdl.prev = ndl;
+			ndl.next = drl.fdl;			//last next = 1st
+			drl.fdl.prev = ndl;
 			ldl.next = ndl;
-			dl = ndl;
+			drl.dl = ndl;
 
 			if (ndl.count%100 == 0){
 				//debug("dls="+ldl.count);
-				di = drcode.indAdd(dl,di,fdi);
-				if (di.ind == 1) fdi = di;
+				drl.di = drcode.indAdd(drl.dl,drl.di,drl.fdi);
+				if (drl.di.ind == 1) drl.fdi = drl.di;
 			}
 		}
 
-		drl.dl = dl;
-		drl.fdl = fdl;
-		drl.di = di;
-		drl.fdi = fdi;
 		drl.success = 1;			//success
 
 		return drl;
@@ -504,30 +475,23 @@ public class DRCode<T>
 		DRCode<T> drcode = new DRCode<T>();
 		DRArrayList<T> ldl = new DRArrayList<T>();		//last ele
 
-		DRArrayList<T> dl = drl.dl;
-		DRArrayList<T> fdl = drl.fdl;
-		DRIndex<T> fdi = drl.fdi;
-		DRIndex<T> di = drl.di;
-		DRBTree bt = drl.bt;
-		DRBTree root = drl.root;
-
 		String key = "";
 		int ncnt = 0;
 
-		dl = fdl;					//set to 1st
+		drl.dl = drl.fdl;					//set to 1st
 
-		if (dl.prev == null){
-			dl.count = 1;
-			ncnt = dl.count;
+		if (drl.dl.prev == null){
+			drl.dl.count = 1;
+			ncnt = drl.dl.count;
 			drl.size = 1;
-			dl.sortKey = sk;
-			dl.obj = obj1;
-			dl.prev = dl;
-			dl.next = dl;
-			fdl = dl;
+			drl.dl.sortKey = sk;
+			drl.dl.obj = obj1;
+			drl.dl.prev = drl.dl;
+			drl.dl.next = drl.dl;
+			drl.fdl = drl.dl;
 			debug("add key 1");
 		}else{
-			ldl = fdl.prev;				//1st prev goes to last element
+			ldl = drl.fdl.prev;				//1st prev goes to last element
 			DRArrayList<T> ndl = new DRArrayList<T>();
 			ndl.count = ldl.count + 1;
 			ncnt = ndl.count;
@@ -535,28 +499,22 @@ public class DRCode<T>
 			ndl.sortKey = sk;
 			ndl.obj = obj1;
 			ndl.prev = ldl;
-			ndl.next = fdl;			//last next = 1st
-			fdl.prev = ndl;
+			ndl.next = drl.fdl;			//last next = 1st
+			drl.fdl.prev = ndl;
 			ldl.next = ndl;
-			dl = ndl;
+			drl.dl = ndl;
 			if (ndl.count%100 == 0){
 				//debug("dls="+ldl.count);
-				di = drcode.indAdd(dl,di,fdi);
-				if (di.ind == 1) fdi = di;
+				drl.di = drcode.indAdd(drl.dl,drl.di,drl.fdi);
+				if (drl.di.ind == 1) drl.fdi = drl.di;
 			}
 		}
 		if (sk != null){
-			bt = drcode.DRaddBTree(sk,ncnt,ncnt,bt,root);
-			if (bt.line == 1) root = bt;
-			debug("ak - add obj1 sk="+sk+" dup="+bt.duplicate+" ncnt="+ncnt);
+			drl.bt = drcode.DRaddBTree(sk,ncnt,ncnt,drl.bt,drl.root);
+			if (drl.bt.line == 1) drl.root = drl.bt;
+			debug("ak - add obj1 sk="+sk+" dup="+drl.bt.duplicate+" ncnt="+ncnt);
 		}
 
-		drl.dl = dl;
-		drl.fdl = fdl;
-		drl.di = di;
-		drl.fdi = fdi;
-		drl.bt = bt;
-		drl.root = root;
 		drl.success = 1;			//success
 
 		return drl;
@@ -641,11 +599,6 @@ public class DRCode<T>
 	//==================================================
 	public DRListTBL<T> DRgetEle(int i,DRListTBL<T> drl){
 
-		DRArrayList<T> dl = drl.dl;
-		DRArrayList<T> fdl = drl.fdl;
-		DRIndex<T> fdi = drl.fdi;
-		DRIndex<T> di = drl.di;
-
 		drl.success = 1;
 		debug("ge - start i="+i+" siz="+drl.size);
 
@@ -662,51 +615,45 @@ public class DRCode<T>
 			return drl;			
 		}
 
-		dl = fdl;					//set to 1st
+		drl.dl = drl.fdl;					//set to 1st
 		int j = 0;
 
-		if (dl.prev == null){
+		if (drl.dl.prev == null){
 			drl.success = -1;
 			return drl;			
 		}else{
-			ldl = dl.prev;				//1st prev goes to last
+			ldl = drl.dl.prev;				//1st prev goes to last
 			if (ldl.count < i) return null;
-			if (fdl.saveIndex > 0 && fdl.saveIndex < i){
-				j = fdl.saveIndex;
-				dl = fdl.save;
+			if (drl.fdl.saveIndex > 0 && drl.fdl.saveIndex < i){
+				j = drl.fdl.saveIndex;
+				drl.dl = drl.fdl.save;
 			}
 			debug("ge - i="+i+" ldlc="+ldl.count+" j="+j);
 			if (i > 100 && (i - j) > 100){				//if true use index
-				dl = drcode.getIndex(i,di,fdi);
-				j = dl.count;
+				drl.dl = drcode.getIndex(i,drl.di,drl.fdi);
+				j = drl.dl.count;
 			}
-			while (j < i && dl != null){
-				dl = dl.next;
+			while (j < i && drl.dl != null){
+				drl.dl = drl.dl.next;
 				j++;
 			}
-			debug("ge - j="+j+" i="+i+" dlc="+dl.count+" sk="+dl.sortKey+" del="+dl.deleted);
+			debug("ge - j="+j+" i="+i+" dlc="+drl.dl.count+" sk="+drl.dl.sortKey+" del="+drl.dl.deleted);
 			if (drl.fromGetKey){
-				if (dl.deleted){
+				if (drl.dl.deleted){
 					drl.success = -1;
 					return drl;
 				}
 			}else{
-				if (dl.deleted){
-					drl.dl = dl;
+				if (drl.dl.deleted){
 					drl = drcode.nextNonDeleted(drl);
 					if (drl.success == -1) return drl;
-					dl = drl.dl;
-					debug("ge - dlc="+dl.count+" sk="+dl.sortKey+" del="+dl.deleted);
+					debug("ge - dlc="+drl.dl.count+" sk="+drl.dl.sortKey+" del="+drl.dl.deleted);
 				}
 			}
 		}
-		fdl.saveIndex = j;
-		fdl.save = dl;
+		drl.fdl.saveIndex = j;
+		drl.fdl.save = drl.dl;
 
-		drl.dl = dl;
-		drl.fdl = fdl;
-		drl.fdi = fdi;
-		drl.di = di;
 		drl.success = 0;
 
 		return drl;
@@ -855,12 +802,9 @@ public class DRCode<T>
 
 		DRCode<T> drcode = new DRCode<T>();
 
-		DRArrayList<T> dl = drl.dl;
-		DRArrayList<T> fdl = drl.fdl;
+		debug("get1st="+drl.fdl.count+" fsk="+drl.fdl.sortKey);
 
-		debug("get1st="+fdl.count+" fsk="+fdl.sortKey);
-
-		DRArrayList<T>[] xx = drcode.toArraySub(dl,fdl,drl.size);
+		DRArrayList<T>[] xx = drcode.toArraySub(drl.dl,drl.fdl,drl.size);
 		debug("sa - xxl="+xx.length+" xsk="+xx[xx.length - 1].sortKey);
 
 		if (xx[0].sortKey == null) return drl;		//sortkey not set so no point sorting
@@ -945,12 +889,10 @@ public class DRCode<T>
 	//==================================================
 	public boolean hasNext(DRListTBL<T> drl){
 
-		DRArrayList<T> dl = drl.dl;
-
 		boolean nextFound = true;
-		if (dl == null) return false;
-		if (dl.next.count == 1) nextFound = false;
-		//debug("hn - cnt="+dl.next.count+" "+dl.count);
+		if (drl.dl == null) return false;
+		if (drl.dl.next.count == 1) nextFound = false;
+		//debug("hn - cnt="+drl.dl.next.count+" "+drl.dl.count);
 
 		return nextFound;
 
@@ -958,34 +900,20 @@ public class DRCode<T>
 	//=========================================================
 	public DRListTBL<T> clear(DRListTBL<T> drl){
 
-		DRArrayList<T> dl = drl.dl;
-		DRArrayList<T> fdl = drl.fdl;
-		DRIndex<T> di = drl.di;
-		DRIndex<T> fdi = drl.fdi;
-		DRBTree bt = drl.bt;
-		DRBTree root = drl.root;
+		drl.dl = drl.fdl;
+		int size = drl.dl.prev.count;		//get last count
 
-		dl = fdl;
-		int size = dl.prev.count;		//get last count
+		drl.dl = null;
+		drl.fdl = null;
 
-		dl = null;
-		fdl = null;
+		drl.di = null;
+		drl.fdi = null;
 
-		di = null;
-		fdi = null;
-
-		if (bt != null){
-			bt = root;
-			bt = null;
-			root = null;			//clears btree down
+		if (drl.bt != null){
+			drl.bt = drl.root;
+			drl.bt = null;
+			drl.root = null;			//clears btree down
 		}
-
-		drl.dl = dl;
-		drl.fdl = dl;
-		drl.di = di;
-		drl.fdi = fdi;
-		drl.bt = bt;
-		drl.root = root;
 
 		drl = null;
 		DRListTBL<T> drl1 = new DRListTBL<T>();
@@ -997,27 +925,23 @@ public class DRCode<T>
 	public DRListTBL<T> DRnext(DRListTBL<T> drl){
 
 		DRCode<T> drcode = new DRCode<T>();
-		DRArrayList<T> dl = drl.dl;
-		DRArrayList<T> fdl = drl.fdl;
 
 		drl.success = 1;
 
-		int lastcnt = fdl.prev.count;			//if last rec cnt is 0 then all deleted
+		int lastcnt = drl.fdl.prev.count;			//if last rec cnt is 0 then all deleted
 		if (lastcnt == 0) drl.success = -1;
 		if (drl.success == -1) return drl;
 
-		if (dl == null) return null;			// arraylist is null, no currency
-		int cnt = dl.count;
-		dl = dl.next;
-		if (dl.count == fdl.count && cnt > 0) drl.success = -1;	//end of list
+		if (drl.dl == null) return null;			// arraylist is null, no currency
+		int cnt = drl.dl.count;
+		drl.dl = drl.dl.next;
+		if (drl.dl.count == drl.fdl.count && cnt > 0) drl.success = -1;	//end of list
 		if (drl.success == -1) return drl;
 
-		fdl.save = dl;
-		fdl.saveIndex = dl.count;
+		drl.fdl.save = drl.dl;
+		drl.fdl.saveIndex = drl.dl.count;
 
-		drl.dl = dl;
-
-		if (dl.deleted) drl = drcode.nextNonDeleted(drl);
+		if (drl.dl.deleted) drl = drcode.nextNonDeleted(drl);
 
 		return drl;
 	}
@@ -1026,23 +950,20 @@ public class DRCode<T>
 	public DRListTBL<T> DRprev(DRListTBL<T> drl){
 
 		DRCode<T> drcode = new DRCode<T>();
-		DRArrayList<T> dl = drl.dl;
-		DRArrayList<T> fdl = drl.fdl;
 
 		drl.success = 1;
 
-		if (dl == null) drl.success = -1;			// arraylist is null, no currency
+		if (drl.dl == null) drl.success = -1;			// arraylist is null, no currency
 		if (drl.success == -1) return drl;
-		int cnt = dl.count;
-		dl = dl.prev;
-		if (dl.count == fdl.prev.count && cnt > 0) drl.success = -1;	//end of list
+		int cnt = drl.dl.count;
+		drl.dl = drl.dl.prev;
+		if (drl.dl.count == drl.fdl.prev.count && cnt > 0) drl.success = -1;	//end of list
 		if (drl.success == -1) return drl;
 
-		fdl.save = dl;
-		fdl.saveIndex = dl.count;
-		drl.dl = dl;
+		drl.fdl.save = drl.dl;
+		drl.fdl.saveIndex = drl.dl.count;
 
-		if (dl.deleted) drl = drcode.prevNonDeleted(drl);
+		if (drl.dl.deleted) drl = drcode.prevNonDeleted(drl);
 
 		return drl;
 	}
@@ -1050,16 +971,13 @@ public class DRCode<T>
 	public DRListTBL<T> DRgetFirst(DRListTBL<T> drl){
 
 		DRCode<T> drcode = new DRCode<T>();
-		DRArrayList<T> dl = drl.dl;
-		DRArrayList<T> fdl = drl.fdl;
 
 		drl.success = 1;
-		if (fdl.next == null) drl.success = -1;
+		if (drl.fdl.next == null) drl.success = -1;
 		if (drl.success == -1) return drl;
-		dl = fdl;
-		drl.dl = dl;
+		drl.dl = drl.fdl;
 
-		if (dl.deleted)	drl = drcode.nextNonDeleted(drl);
+		if (drl.dl.deleted)	drl = drcode.nextNonDeleted(drl);
 
 		return drl;
 	}
@@ -1067,17 +985,14 @@ public class DRCode<T>
 	public DRListTBL<T> DRgetLast(DRListTBL<T> drl){
 
 		DRCode<T> drcode = new DRCode<T>();
-		DRArrayList<T> dl = drl.dl;
-		DRArrayList<T> fdl = drl.fdl;
 
 		drl.success = 1;
-		if (fdl.next == null) drl.success = -1;;
+		if (drl.fdl.next == null) drl.success = -1;;
 		if (drl.success == -1) return drl;
-		dl = fdl.prev;
-		drl.dl = dl;
+		drl.dl = drl.fdl.prev;
 
-		debug("gl - lastcnt="+dl.count);
-		if (dl.deleted) drl = drcode.prevNonDeleted(drl);
+		debug("gl - lastcnt="+drl.dl.count);
+		if (drl.dl.deleted) drl = drcode.prevNonDeleted(drl);
 
 		return drl;
 	}

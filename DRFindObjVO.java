@@ -28,6 +28,18 @@ public class DRFindObjVO<T>
 		this.xdrl = null;
 		return this.obj;
 	}
+	public DRList<T> getDRList(){
+		this.xdrl = null;
+		DRList<T> ndrl = new DRList<T>();
+		for (int i = 0; i < obj.length; i++) ndrl.DRadd(this.obj[i]);
+		return ndrl;
+	}
+	public List<T> getArrayList(){
+		this.xdrl = null;
+		List<T> nlst = new ArrayList<T>();
+		for (int i = 0; i < obj.length; i++) nlst.add(this.obj[i]);
+		return nlst;
+	}
 	public void setDRL(DRListTBL<T> xdrl){
 		//System.out.println("sd - "+xdrl.size);
 		this.xdrl = xdrl;

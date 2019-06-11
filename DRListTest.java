@@ -52,8 +52,8 @@ public class DRListTest
 
 		try{
 			dl1.DRsortNoKeyAsc("col");
-		}catch (NoSuchFieldException nsf){
-			System.out.println("DLT - nsf col");
+		}catch (DRNoMatchException nsf){
+			System.out.println("DLT - nsf price1 "+nsf.getMessage());
 		}
 		for (int i=0; i < dl1.DRsize(); i++){
 			vos2 = (knapVO)dl1.DRget(i);
@@ -61,8 +61,8 @@ public class DRListTest
 		}
 		try{
 			dl1.DRsortNoKeyAsc("price");
-		}catch (NoSuchFieldException nsf){
-			System.out.println("DLT - nsf price");
+		}catch (DRNoMatchException nsf){
+			System.out.println("DLT - nsf price1 "+nsf.getMessage());
 		}
 		for (int i=0; i < dl1.DRsize(); i++){
 			vos2 = (knapVO)dl1.DRget(i);
@@ -70,8 +70,8 @@ public class DRListTest
 		}
 		try{
 			dl1.DRsortNoKeyAsc("price1");
-		}catch (NoSuchFieldException nsf){
-			System.out.println("DLT - nsf price1");
+		}catch (DRNoMatchException nsf){
+			System.out.println("DLT - nsf price1 "+nsf.getMessage());
 		}
 
 		dl1.DRclear();
@@ -272,8 +272,8 @@ public class DRListTest
 
 		try{
 			dl3.DRsortNoKeyDsc("col");
-		}catch (NoSuchFieldException nsf){
-			System.out.println("DLT - nsf null");
+		}catch (DRNoMatchException nsf){
+			System.out.println("DLT - nsf col "+nsf.getMessage());
 		}
 		System.out.println("DLT - sort obj 1st="+dl3.DRgetFirst()+" lst="+dl3.DRgetLast());
 
