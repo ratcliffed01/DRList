@@ -106,7 +106,7 @@ public class DRFindTest
 			System.out.println("DLT - lt found "+(String)obj[0]+" ol="+obj.length);
 
 			obj = dl3.DRFind("","Like","99").getObjArray();
-			System.out.println("DLT - like found 1st="+(String)obj[0]+" 2nd="+(String)obj[1]+" ol="+obj.length);
+			System.out.println("DLT - like99 found 1st="+(String)obj[0]+" 2nd="+(String)obj[1]+" ol="+obj.length);
 
 			obj = dl3.DRFind("","Min","").getObjArray();
 			System.out.println("DLT - min found 1st="+(String)obj[0]+" ol="+obj.length);
@@ -115,7 +115,14 @@ public class DRFindTest
 			System.out.println("DLT - max found 1st="+(String)obj[0]+" ol="+obj.length);
 
 			obj = dl3.DRFind("",">","DaveR Number1011").DRFindAnd("","<","DaveR Number1111").getObjArray();
-			System.out.println("DLT - ltand found "+(String)obj[0]+" ol="+obj.length);
+			System.out.println("DLT - like found 1st="+(String)obj[0]+" 2nd="+(String)obj[1]+" ol="+obj.length);
+
+			String max = dl3.DRFind("","Like","99").getMax("");
+			String min = dl3.DRFind("","Like","99").getMin("");
+			System.out.println("DLT - max99 max="+max+" min="+min);
+
+			String avg = dl3.DRFind("","Like","99").getAvg("");
+			System.out.println("DLT - avg99 avg="+avg);
 
 			System.out.println("DLT - ti="+(System.currentTimeMillis() - sti)+"ms");
 

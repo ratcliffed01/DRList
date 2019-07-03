@@ -214,7 +214,8 @@ public class DRFind<T>
 		T[] obj1 = drf.DRFind(fieldName, operator, value, ndrl).getObjArray();
 
 		return obj1;
-	}	//==============================================================
+	}
+	//==============================================================
 	public T[] minusObjs(T[] obj1, T[] obj2) throws DRNoMatchException
 	{
 	
@@ -246,6 +247,172 @@ public class DRFind<T>
 
 		debug1("f= - end ol="+o.length);
 		return o;
+	}
+
+	//================================================
+	public DRFindObjVO<T> distinct(T[] obj1) 
+		throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		DRCode<T> drc = new DRCode<T>();
+		DRListTBL<T> ndrl = new DRListTBL<T>();
+		DRFindVO vo = new DRFindVO();
+
+		for (int i = 0; i < obj1.length - 1; i++){
+			for (int j = i + 1; j < obj1.length; j++){
+				if (checkFields(obj1[i],obj1[j])){
+					obj1[i] = null;
+					break;
+				}
+			}
+			if (obj1[i] != null) drc.DRadd(obj1[i],ndrl);
+		}
+		drc.DRadd(obj1[obj1.length - 1],ndrl);
+
+		@SuppressWarnings("unchecked")
+		T[] nobj = (T[]) java.lang.reflect.Array.newInstance(ndrl.dl.obj.getClass(), drc.DRsize(ndrl));
+		ndrl = drc.DRgetFirst(ndrl);
+		for (int i = 0; i < nobj.length; i++){
+			nobj[i] = ndrl.dl.obj;
+			ndrl = drc.DRnext(ndrl);
+		}
+
+		DRFindObjVO<T> avo = new DRFindObjVO<T>();
+		avo.setObjArray(nobj);
+
+		return avo;
+	}
+	//================================================
+	public boolean checkFields(T obj1, T obj2){
+
+		boolean ret = false;
+		Class c1 = obj1.getClass();
+		Class c2 = obj2.getClass();
+		if (c1 != c2) return false;
+		String str1 = "";
+		String str2 = "";
+		int brcnt = 0;
+		int i = 0;
+		try{
+			Field[] f1 = c1.getDeclaredFields();
+			Field[] f2 = c2.getDeclaredFields();
+
+			for (i = 0; i < f1.length; i++){
+				f1[i].setAccessible(true);
+				str1 = (String)f1[i].get(obj1).toString();
+				f2[i].setAccessible(true);
+				str2 = (String)f2[i].get(obj2).toString();
+				if (str1.equals(str2)){
+					//System.out.println("cf - i="+i+" s1="+str1+" s2="+str2+" f1l="+f1.length+" nam="+f1[i].getName());
+					brcnt++;
+				}
+			}
+			if (brcnt == i) ret = true;
+			return ret;
+		}catch (IllegalAccessException nsf){
+			str1 = (String)obj1;
+			str2 = (String)obj2;
+			if (str1.equals(str2)) ret = true;
+			return ret;
+		}
+	}
+	//================================================
+	public double getDouble(String op, String fieldName, T[] obj)
+		throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		DRListTBL<T> ndrl = new DRListTBL<T>();
+		DRCode<T> drc = new DRCode<T>();
+		DRFindVO vo = new DRFindVO();
+
+		if (obj.length == 0) throw new DRNoMatchException("Object is null for getting average");
+
+		for (int i = 0; i < obj.length; i++) drc.DRadd(obj[i],ndrl);
+
+		vo = drf.setFieldType(fieldName, vo, ndrl);
+
+		if (vo.getFieldType().equals("String") || vo.getFieldType().equals("char"))
+			throw new DRNoMatchException("Field type is not of type numeric");
+
+		double dval = 0.0d;
+		for (int i = 0; i < obj.length; i++)
+			dval += drf.getDoubleValue(obj[i],vo);
+
+		if (op.equals("avg")) dval = dval / obj.length;
+
+		return dval;		
+	}
+	//================================================
+	public long getLong(String op, String fieldName, T[] obj)
+		throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		DRListTBL<T> ndrl = new DRListTBL<T>();
+		DRCode<T> drc = new DRCode<T>();
+		DRFindVO vo = new DRFindVO();
+
+		if (obj.length == 0) throw new DRNoMatchException("Object is null for getting average");
+
+		for (int i = 0; i < obj.length; i++) drc.DRadd(obj[i],ndrl);
+
+		vo = drf.setFieldType(fieldName, vo, ndrl);
+
+		if (vo.getFieldType().equals("String") || vo.getFieldType().equals("char"))
+			throw new DRNoMatchException("Field type is not of type numeric");
+
+		double dval = 0.0d;
+		for (int i = 0; i < obj.length; i++)
+			dval += drf.getDoubleValue(obj[i],vo);
+
+		if (op.equals("avg")) dval = dval / obj.length;
+
+		String dStr = Double.toString(dval);
+		long lval = 0;
+		if (vo.getFieldType().equals("BigDecimal")) lval  = BigDecimal.valueOf(dval).longValue();
+		else lval = Long.parseLong(dStr.substring(0,dStr.indexOf(".")));
+
+		return lval;
+	}
+	//===============================================================
+	public double getDoubleValue(Object x, DRFindVO vo) throws DRNoMatchException
+	{
+		//debug("sov start - fn="+" fl=");
+		double dval = 0.0d;
+		if (vo.getFieldName().length() == 0){
+			if (vo.getFieldType().equals("int")) dval = Double.parseDouble(Integer.toString((Integer)x));
+			if (vo.getFieldType().equals("long")) dval = Double.parseDouble(Long.toString((Long)x));
+			if (vo.getFieldType().equals("float")) dval = Double.parseDouble(Float.toString((Float)x));
+			if (vo.getFieldType().equals("byte")) dval = Double.parseDouble(Byte.toString((Byte)x));
+			if (vo.getFieldType().equals("double")) dval = Double.valueOf((Double)x);
+			if (vo.getFieldType().equals("short")) dval = Double.parseDouble(Short.toString((Short)x));
+			if (vo.getFieldType().equals("BigDecimal")) dval = Double.parseDouble(((BigDecimal)x).toString());
+		}else{
+			try{
+				//debug("sov - x="+x.toString()+" ft="+fieldType+" fn="+fieldName);
+				Class c1 = x.getClass();
+				Field f = c1.getDeclaredField(vo.getFieldName());
+				f.setAccessible(true);
+				if (vo.getFieldType().equals("int")) dval = Double.parseDouble(Integer.toString(f.getInt(x)));
+				if (vo.getFieldType().equals("long")) dval = Double.parseDouble(Long.toString(f.getLong(x)));
+				if (vo.getFieldType().equals("float")) dval = Double.parseDouble(Float.toString(f.getFloat(x)));
+				if (vo.getFieldType().equals("byte")) dval = Double.parseDouble(Byte.toString(f.getByte(x)));
+				if (vo.getFieldType().equals("double")) dval = Double.valueOf(f.getDouble(x));
+				if (vo.getFieldType().equals("short")) dval = Double.parseDouble(Short.toString(f.getShort(x)));
+				if (vo.getFieldType().equals("BigDecimal")) dval = Double.parseDouble(((BigDecimal) f.get(x)).toString());  //new BigDecimal((String)f.get(x));
+
+			}catch (NoSuchFieldException nsm){
+				debug1("sov - nsm "+vo.getFieldName());
+				throw new DRNoMatchException("NoSuchFieldExcep - "+vo.getFieldName());
+			} catch (IllegalArgumentException iae) {
+				debug1("sov - iae - "+vo.getFieldName());
+				throw new DRNoMatchException("IllegalArgumentExcep - "+vo.getFieldName());
+			}catch (IllegalAccessException acce) {
+				debug1("sov - acce - "+vo.getFieldName());
+				throw new DRNoMatchException("IllegalAccessExcep - "+vo.getFieldName());
+			}
+		}
+		//debug("sov end - os=");
+		return dval;
 	}
 	//================================================
 	public T[] DRFindInvoke(int opCnt, DRFindVO vo, DRListTBL<T> drl) throws DRNoMatchException
@@ -297,7 +464,8 @@ public class DRFind<T>
 					dl2.obj = drl.dl.obj;
 				}
 			}
-			drl.dl = drl.dl.next;
+			drl = drc.DRnext(drl);
+			if (drl.success == -1) break;
 		}
 		int size = drc.DRsize(dl1);
 		debug1("f= - after comp siz="+size+" j="+j+" oval="+(String)vo.getObjValue());
@@ -433,6 +601,43 @@ public class DRFind<T>
 
 		debug1("f= - end ol="+o.length);
 		return o;
+	}
+	//==============================================================
+	public String getFieldType(String fieldName, T[] obj) throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		DRListTBL<T> ndrl = new DRListTBL<T>();
+		DRCode<T> drc = new DRCode<T>();
+		DRFindVO vo = new DRFindVO();
+
+		if (obj.length == 0) throw new DRNoMatchException("Object is null for getting field type");
+
+		for (int i = 0; i < obj.length; i++) drc.DRadd(obj[i],ndrl);
+
+		vo = drf.setFieldType(fieldName, vo, ndrl);
+
+		return vo.getFieldType();
+	}
+	//==============================================================
+	public String[] getFieldString(String fieldName, T[] obj) throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		DRListTBL<T> ndrl = new DRListTBL<T>();
+		DRCode<T> drc = new DRCode<T>();
+		DRFindVO vo = new DRFindVO();
+
+		if (obj.length == 0) throw new DRNoMatchException("Object is null for getting field type");
+
+		for (int i = 0; i < obj.length; i++) drc.DRadd(obj[i],ndrl);
+		vo = drf.setFieldType(fieldName, vo, ndrl);
+
+		String[] xx = new String[obj.length];
+		for (int i = 0; i < obj.length; i++){ 
+			vo.setObjValue(obj[i]);
+			xx[i] = (String)vo.getObjValue();
+		}
+
+		return xx;
 	}
 	//=====================================================
 	public class DRFindVO
@@ -591,7 +796,10 @@ public class DRFind<T>
 
 			int greater = 0;
 			int x1 = 99;
-			if (fieldType.equals("String")) x1 = vString.compareTo(oString);
+			if (fieldType.equals("String")){
+				if (oString == null) oString = " "; 
+				x1 = vString.compareTo(oString);
+			}
 			if (fieldType.equals("BigDecimal")) x1 = vbgd.compareTo(obgd);
 			if (fieldType.equals("byte")){	vLong = (long)vByte;	oLong = (long)oByte;}
 			if (fieldType.equals("short")){	vLong = (long)vShort;	oLong = (long)oShort;}
@@ -620,7 +828,7 @@ public class DRFind<T>
 			if (x1 == 0) greater = 0;			//V > O
 			if (x1 > 0) greater = -1;
 			if (x1 < 0) greater = 1;
-			//debug1("cv - g="+greater+" ostr="+oString+" vstr="+vString);
+			debug("cv - g="+greater+" ostr="+oString+" vstr="+vString);
 
 			return greater;
 		}

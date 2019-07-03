@@ -26,22 +26,42 @@ public class DRFindTest1
 
 		//========================================
 		nameVO nvo = new nameVO();
+		nameVO nvo1 = new nameVO();
 		DRList<nameVO> dl4 = new DRList<nameVO>();
-		nameVO[] nvoa = new nameVO[10001];
+		nameVO[] nvoa = new nameVO[10101];
 		String xstr = "";
 		int j = 200000;
-		for (int i = 0; i < 10001; i++){
+		int k = 0;
+		int l = 0;
+		for (int i = 0; i < nvoa.length; i++){
 			nvoa[i] = new nameVO();
-			nvoa[i].firstName = "Dave"+Integer.toString(i);
-			nvoa[i].surName = "Number"+Integer.toString(i);
-			nvoa[i].houseNo = i;
-			nvoa[i].postCode = "CR "+Integer.toString(i);
-			nvoa[i].salary = 25000.00f + Float.parseFloat(Integer.toString(i));
-			xstr =  j - i + "";
+			nvoa[i].firstName = "Dave"+Integer.toString(l);
+			nvoa[i].surName = "Number"+Integer.toString(l);
+			nvoa[i].houseNo = l;
+			nvoa[i].postCode = "CR "+Integer.toString(k);
+			nvoa[i].salary = 25000.00f + Float.parseFloat(Integer.toString(l));
+			xstr =  j - l + "";
 			nvoa[i].houseVal = new BigDecimal(xstr);
-			//System.out.println("DLT - nvo size="+dl4.DRsize()+" minsal="+nvo.salary+" minnam="+nvo.surName);
-
 			dl4.DRadd(nvoa[i]);
+			if (l % 100 == 0){
+				i++;
+				if (i > 10100) break;
+				nvoa[i] = new nameVO();
+				nvoa[i].firstName = nvoa[i - 1].firstName;
+				nvoa[i].surName = nvoa[i - 1].surName;
+				nvoa[i].houseNo = nvoa[i - 1].houseNo;
+				nvoa[i].postCode = nvoa[i - 1].postCode;
+				nvoa[i].salary = nvoa[i - 1].salary;
+				nvoa[i].houseVal = nvoa[i - 1].houseVal;
+				//System.out.println("DLT - sal="+nvoa[i].salary+"/"+nvoa[i - 1].salary+" sn="+nvoa[i].surName+"/"+
+				//nvoa[i - 1].surName+" hv="+nvoa[i].houseVal+"/"+nvoa[i - 1].houseVal+" pc="+nvoa[i].postCode+"/"+
+				//nvoa[i - 1].postCode+" fn="+nvoa[i].firstName+"/"+nvoa[i - 1].firstName+" hn="+nvoa[i].houseNo+"/"+
+				//nvoa[i - 1].houseNo);
+				k++;
+				dl4.DRadd(nvoa[i]);
+			}
+			l++;
+			//System.out.println("DLT - nvo size="+dl4.DRsize()+" minsal="+nvo.salary+" minnam="+nvo.surName);
 		}
 		nvo = (nameVO)dl4.DRget(1);
 		System.out.println("DLT - nvo size="+dl4.DRsize()+" minsal="+nvo.salary+" minnam="+nvo.surName);
@@ -52,6 +72,11 @@ public class DRFindTest1
 				.getObjArray();
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - or3= found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
+
+			obj = dl4.DRFind("surName","=","Number101").DRFindOr("surName","=","Number101").DRFindOr("surName","=","Number102")
+				.getObjArray();
+			nvo = (nameVO)obj[0];
+			System.out.println("DLT - or3>2 found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
 
 			DRList<nameVO> ndrl =  dl4.DRFind("surName","=","Number100").DRFindOr("surName","=","Number102").getDRList();
 			nvo = (nameVO)ndrl.DRget(0);
@@ -72,13 +97,85 @@ public class DRFindTest1
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - or3= found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
 
-			obj = dl4.DRFind("houseVal",">","195000").DRFindAnd("houseVal","<","195100").DRFindAnd("houseVal asc","Like","8").getObjArray();
+			obj = dl4.DRFind("houseVal",">","199000").DRFindAnd("houseVal","<","199900").DRFindAnd("houseVal asc","Like","00").getObjArray();
 			for (int i = 0; i < obj.length; i++){
 				nvo = (nameVO)obj[i];
 				System.out.println("DLT - houseVal found snam="+nvo.surName+" hv="+nvo.houseVal+" sal="+nvo.salary);
 			}
+
+			int cnt = dl4.DRFind("houseVal",">","195000").DRFindAnd("houseVal","<","195100").DRFindAnd("houseVal asc","Like","8")
+				.getCount();
+			System.out.println("DLT - cnt="+cnt);
+
+			float favg = dl4.DRFind("houseVal",">","195000").DRFindAnd("houseVal","<","195100").DRFindAnd("houseVal asc","Like","8")
+				.getAvg("salary");
+			int iavg = dl4.DRFind("houseVal",">","195000").DRFindAnd("houseVal","<","195100").DRFindAnd("houseVal asc","Like","8")
+				.getAvg("houseNo");
+			System.out.println("DLT - favg="+favg+" iavg="+iavg);
+
+			long tot = dl4.DRFind("houseVal",">","195000").DRFindAnd("houseVal","<","195100").DRFindAnd("houseVal asc","Like","8")
+				.getSum("salary","LONG");
+			int toti = dl4.DRFind("houseVal",">","195000").DRFindAnd("houseVal","<","195100").DRFindAnd("houseVal asc","Like","8")
+				.getSum("salary","INTEGER");
+			float totf = dl4.DRFind("houseVal",">","195000").DRFindAnd("houseVal","<","195100").DRFindAnd("houseVal asc","Like","8")
+				.getSum("salary","FLOAT");
+			double totd = dl4.DRFind("houseVal",">","195000").DRFindAnd("houseVal","<","195100").DRFindAnd("houseVal asc","Like","8")
+				.getSum("salary","DOUBLE");
+			System.out.println("DLT - tot="+tot+" toti="+toti+" totf="+totf+" totd="+totd);
+
+			cnt = dl4.DRFind("postCode","=","CR 90").getCount();
+			float avg1 = dl4.DRFind("postCode","=","CR 90").getAvg("salary");
+			double sum1 = dl4.DRFind("postCode","=","CR 90").getSum("salary","DOUBLE");
+			System.out.println("DLT - avg="+avg1+" sum="+sum1+" cnt="+cnt);
+
+			BigDecimal avg = dl4.DRFind("postCode","=","CR 90").getAvg("houseVal");
+			tot = dl4.DRFind("postCode","=","CR 90").getSum("houseVal","LONG");
+			System.out.println("DLT - avgbgdec avg="+avg+" sum="+tot);
+
+			int cnt1 = dl4.DRFind("houseVal",">","199650").DRFindAnd("houseVal","<","199850").getCount();
+			cnt = dl4.DRFind("houseVal",">","199650").DRFindAnd("houseVal","<","199850").distinct().getCount();
+			System.out.println("DLT - disctcnt="+cnt+" cnt1="+cnt1);
+			obj = dl4.DRFind("houseVal","=","199700").getObjArray();
+			nvo = (nameVO)obj[0];
+			nvo1 = (nameVO)obj[1];
+			System.out.println("DLT - finddup found snam="+nvo.surName+"/"+nvo1.surName+" ol="+obj.length);
+			System.out.println("DLT - getfv found snam="+dl4.DRFind("houseVal","=","199700").getFieldValue("surName")[0]+"/"+
+				dl4.DRFind("houseVal","=","199700").getFieldValue("surName")[1]+" ol="+obj.length);
+
+			BigDecimal maxb = dl4.DRFind("postCode","=","CR 90").getMax("houseVal");
+			BigDecimal minb = dl4.DRFind("postCode","=","CR 90").getMin("houseVal");
+			System.out.println("DLT - minb="+minb+" maxb="+maxb+
+				" maxs="+dl4.DRFind("postCode","=","CR 90").getMax("surName")+
+				" mins="+dl4.DRFind("postCode","=","CR 90").getMin("surName"));
 		}catch (DRNoMatchException dnm){
 			System.out.println("DLT - like99 err dn "+dnm.getMessage());
+		}
+		try{
+			long tot = dl4.DRFind("postCode","=","CR 90").getLong("sum","postCode");
+			System.out.println("DLT - glpostcode sum="+tot);
+
+		}catch (DRNoMatchException dnm){
+			System.out.println("DLT - getlpostcode err dn "+dnm.getMessage());
+		}
+		try{
+			String str = dl4.DRFind("postCode","=","CR 90").getAvg("surName");
+			System.out.println("DLT - avsurname avsurn="+str);
+
+		}catch (DRNoMatchException dnm){
+			System.out.println("DLT - avsurname err dn "+dnm.getMessage());
+		}
+
+		DRList<Integer> dl5 = new DRList<Integer>();
+		for (int i = 0; i < 1001; i++) dl5.DRadd(Integer.valueOf(i));
+		try{
+			int min = dl5.DRFind("","Like","99").getMin("");
+			int max = dl5.DRFind("","Like","99").getMax("");
+			int avg = dl5.DRFind("","Like","99").getAvg("");
+			BigDecimal sum = dl5.DRFind("","Like","99").getSum("","bigdecimal");
+			System.out.println("DLT - dl5int99 minx="+min+" max="+max+" avg="+avg+" sum="+sum);
+
+		}catch (DRNoMatchException dnm){
+			System.out.println("DLT - intarray err dn "+dnm.getMessage());
 		}
 
 		System.out.println("DLT - ti="+(System.currentTimeMillis() - sti)+"ms");

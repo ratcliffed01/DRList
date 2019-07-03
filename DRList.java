@@ -1,12 +1,13 @@
 // to compile do from folder above C:\projects\DRList>javac -Xlint:unchecked -cp ../ DRList.java
 //========================================================================
-//	Author - David Ratcliffe	Version - 1.3	Date - 21/03/2019
+//	Author - David Ratcliffe	Version - 1.4	Date - 03/07/2019
 //
 //	ver1.1	- Add new functions to allow duplicates in BTree and reIndex, plus fix some bugs
 //	ver1.2	- Add DRFind, new search facility and sort on Objects field
 //	ver1.3	- Add new VO class DRFindObjVO, to call findand, findor, compare all primitive types and BigDecimal
+//	ver1.4	- Add new fncs to DRFindObjVO, getCount, getMax, getMin, getFieldValue, getAvg, getSum and distinct
 //
-//	programs - DRList.java, DRArrayList.java, DRIndex.java, DRBTree.java, DRCode.java, DRListTBL
+//	programs - DRList.java, DRArrayList.java, DRIndex.java, DRBTree.java, DRCode.java, DRListTBL, DRFind.java, DRFindObjVO.java
 //
 //	This is a variable collection list which uses index to get element number or key to get element from
 //	entered key.
@@ -69,7 +70,32 @@
 // 				List<nameVO> nlst = dl4.DRFind("surName","=","Number100").DRFindOr("surName","=","Number101").getArrayList();
 //	T[] DRFindObject(String fieldName, String operator, String value, T[] obj)
 //					- Returns an Object array, is based on DRFindAnd and a Object array is passed as a parameter.
-
+//	<Any> Any getSum(String fieldName, String fieldType)  throws DRNoMatchException
+//					- Returns numeric sum of list of objects, allows any numeric field name and fieldtype that is to be 
+//					  returned, ie if the sum is of byte the return can be long. Valid fieldtypes are DOUBLE, INTEGER, 
+//					  FLOAT, BIGDECIMAL, LONG ie
+//					double sum1 = dl4.DRFind("postCode","=","CR 90").getSum("salary","DOUBLE");
+//	<Any> Any getAvg(String fieldName) throws DRNoMatchException
+//					- Returns the numeric average of the list of objects, the return is of the same type as the field name.
+//					  if fieldName is of type String the error is returned.
+//					float avg1 = dl4.DRFind("postCode","=","CR 90").getAvg("salary");
+//	<Any> Any[] getFieldValue(String fieldName) throws DRNoMatchException
+//					- Returns an array of same type as fieldName, can be numeric or String.
+//					  String[] xx = dl4.DRFind("houseVal","=","199700").getFieldValue("surName");
+//	<Any> Any getMin(String fieldName) throws DRNoMatchException
+//					- Returns the minimum value of the fieldName from list of objects of the same type as fieldName.
+//					BigDecimal minb = dl4.DRFind("postCode","=","CR 90").getMin("houseVal");
+//					- if no field name the use "" ie String max = dl3.DRFind("","Like","99").getMin("");
+//	<Any> Any getMax(String fieldName) throws DRNoMatchException
+//					- Returns the maximum value of the fieldName from list of objects of the same type as fieldName.
+//					BigDecimal maxb = dl4.DRFind("postCode","=","CR 90").getMax("houseVal");
+//					- if no field name the use "" ie String max = dl3.DRFind("","Like","99").getMax("");
+//	DRFindObjVO<T> distinct() throws DRNoMatchException
+//					- Removes any duplicates from the object array, all fieldnames in the object must be the same to be
+//					removed. ie
+//					int cnt = dl4.DRFind("houseVal",">","199650").DRFindAnd("houseVal","<","199850").distinct().getCount();
+//	int getCount()			- Returns an integer of the number of elements in an object array
+//					int cnt = dl4.DRFind("postCode","=","CR 90").getCount();
 package DRList;
 
 import java.io.*;
