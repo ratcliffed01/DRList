@@ -1,11 +1,12 @@
 // to compile do from folder above C:\projects\DRList>javac -Xlint:unchecked -cp ../ DRList.java
 //========================================================================
-//	Author - David Ratcliffe	Version - 1.4	Date - 03/07/2019
+//	Author - David Ratcliffe	Version - 1.5	Date - 03/07/2019
 //
 //	ver1.1	- Add new functions to allow duplicates in BTree and reIndex, plus fix some bugs
 //	ver1.2	- Add DRFind, new search facility and sort on Objects field
 //	ver1.3	- Add new VO class DRFindObjVO, to call findand, findor, compare all primitive types and BigDecimal
 //	ver1.4	- Add new fncs to DRFindObjVO, getCount, getMax, getMin, getFieldValue, getAvg, getSum and distinct
+//	ver1.5	- Allow for nulls in fields of a VO
 //
 //	programs - DRList.java, DRArrayList.java, DRIndex.java, DRBTree.java, DRCode.java, DRListTBL, DRFind.java, DRFindObjVO.java
 //

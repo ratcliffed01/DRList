@@ -61,6 +61,7 @@ public class DRFind<T>
 		debug1("vf - start1 fn="+fieldName);
 		if (fieldName.length() == 0){
 			if (drl.dl.obj instanceof String) vo.setFieldType("String");
+			if (drl.dl.obj instanceof Boolean) vo.setFieldType("boolean");
 			if (drl.dl.obj instanceof Integer) vo.setFieldType("int");
 			if (drl.dl.obj instanceof Float) vo.setFieldType("float");
 			if (drl.dl.obj instanceof Byte) vo.setFieldType("byte");
@@ -69,11 +70,13 @@ public class DRFind<T>
 			if (drl.dl.obj instanceof Short) vo.setFieldType("short");
 			if (drl.dl.obj instanceof Character) vo.setFieldType("char");
 			if (drl.dl.obj instanceof BigDecimal) vo.setFieldType("BigDecimal");
+			if (drl.dl.obj instanceof BigInteger) vo.setFieldType("BigInteger");
 			vo.setFieldName(fieldName);
 		}else{
 			String fieldType = f.getType().toString();
 			if (fieldType.indexOf("String") > -1) fieldType = "String";
 			if (fieldType.indexOf("BigDecimal") > -1) fieldType = "BigDecimal";
+			if (fieldType.indexOf("BigInteger") > -1) fieldType = "BigInteger";
 			vo.setFieldType(fieldType);
 			vo.setFieldName(fieldName);
 		}
@@ -90,6 +93,11 @@ public class DRFind<T>
 		if (vo.getFieldType().equals("String")){
 			vo.setValue(value);						
 			vo.setVOrigString(value);						
+		}else if (vo.getFieldType().equals("boolean")){
+			String valBool = value.toUpperCase();
+			if (!valBool.equals("TRUE")&&!valBool.equals("FALSE")) throw new DRNoMatchException("Invalid value for Boolean "+value);
+			vo.setValue(value);						
+			vo.setVOrigString(value);						
 		}else{
 			if (op.equals("Min") || op.equals("Max")){
 				vo.setValue(value);					//this should be ""
@@ -104,6 +112,7 @@ public class DRFind<T>
 					if (vo.getFieldType().equals("long")) Long.parseLong(value);
 					if (vo.getFieldType().equals("short")) Short.parseShort(value);
 					if (vo.getFieldType().equals("BigDecimal")) new BigDecimal(value);
+					if (vo.getFieldType().equals("BigInteger")) new BigInteger(value);
 
 					ret1 = true;
 				}catch (NumberFormatException e){ret1 = false;}
@@ -298,10 +307,18 @@ public class DRFind<T>
 			Field[] f2 = c2.getDeclaredFields();
 
 			for (i = 0; i < f1.length; i++){
-				f1[i].setAccessible(true);
-				str1 = (String)f1[i].get(obj1).toString();
-				f2[i].setAccessible(true);
-				str2 = (String)f2[i].get(obj2).toString();
+				try {
+					f1[i].setAccessible(true);
+					str1 = (String)f1[i].get(obj1).toString();
+				} catch (NullPointerException npe) {
+					str1 = "null";
+				}
+				try {
+					f2[i].setAccessible(true);
+					str2 = (String)f2[i].get(obj2).toString();
+				} catch (NullPointerException npe) {
+					str2 = "null";
+				}
 				if (str1.equals(str2)){
 					//System.out.println("cf - i="+i+" s1="+str1+" s2="+str2+" f1l="+f1.length+" nam="+f1[i].getName());
 					brcnt++;
@@ -341,6 +358,104 @@ public class DRFind<T>
 		if (op.equals("avg")) dval = dval / obj.length;
 
 		return dval;		
+	}
+	//================================================
+	public BigDecimal getBigDecimal(String op, String fieldName, T[] obj)
+		throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		DRListTBL<T> ndrl = new DRListTBL<T>();
+		DRCode<T> drc = new DRCode<T>();
+		DRFindVO vo = new DRFindVO();
+
+		if (obj.length == 0) throw new DRNoMatchException("Object is null for getting BigDecimal average");
+
+		for (int i = 0; i < obj.length; i++) drc.DRadd(obj[i],ndrl);
+
+		vo = drf.setFieldType(fieldName, vo, ndrl);
+
+		if (!vo.getFieldType().equals("BigDecimal"))
+			throw new DRNoMatchException("Field type is not of type BigDecimal");
+
+		BigDecimal bigval = new BigDecimal("0.0");
+		BigDecimal bigtot = new BigDecimal("0.0");
+		for (int i = 0; i < obj.length; i++){
+			T x = obj[i];
+			if (vo.getFieldName().length() == 0){
+				bigval = (BigDecimal)x;
+				bigtot = bigtot.add(bigval);
+			}else{
+				try{
+					Class c1 = x.getClass();
+					Field f = c1.getDeclaredField(vo.getFieldName());
+					f.setAccessible(true);
+					bigval = (BigDecimal) f.get(x);
+					if (bigval==null) bigval = BigDecimal.valueOf(0); 
+					bigtot = bigtot.add(bigval);
+				}catch (NoSuchFieldException nsm){
+					debug1("sov - nsm "+vo.getFieldName());
+					throw new DRNoMatchException("NoSuchFieldExcep - bigdec "+vo.getFieldName());
+				} catch (IllegalArgumentException iae) {
+					debug1("sov - iae - "+vo.getFieldName());
+					throw new DRNoMatchException("IllegalArgumentExcep - bigdec "+vo.getFieldName());
+				}catch (IllegalAccessException acce) {
+					debug1("sov - acce - "+vo.getFieldName());
+					throw new DRNoMatchException("IllegalAccessExcep - bigdec "+vo.getFieldName());
+				}
+			}
+		}
+		if (op.equals("avg")) bigtot = bigtot.divide(new BigDecimal(obj.length),5);
+
+		return bigtot;
+	}
+	//================================================
+	public BigInteger getBigInteger(String op, String fieldName, T[] obj)
+		throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		DRListTBL<T> ndrl = new DRListTBL<T>();
+		DRCode<T> drc = new DRCode<T>();
+		DRFindVO vo = new DRFindVO();
+
+		if (obj.length == 0) throw new DRNoMatchException("Object is null for getting BigInteger average");
+
+		for (int i = 0; i < obj.length; i++) drc.DRadd(obj[i],ndrl);
+
+		vo = drf.setFieldType(fieldName, vo, ndrl);
+
+		if (!vo.getFieldType().equals("BigInteger"))
+			throw new DRNoMatchException("Field type is not of type BigInteger");
+
+		BigInteger bigval = new BigInteger("0");
+		BigInteger bigtot = new BigInteger("0");
+		for (int i = 0; i < obj.length; i++){
+			T x = obj[i];
+			if (vo.getFieldName().length() == 0){
+				bigval = (BigInteger)x;
+				bigtot = bigtot.add(bigval);
+			}else{
+				try{
+					Class c1 = x.getClass();
+					Field f = c1.getDeclaredField(vo.getFieldName());
+					f.setAccessible(true);
+					bigval = (BigInteger) f.get(x);
+					if (bigval==null) bigval = BigInteger.valueOf(0); 
+					bigtot = bigtot.add(bigval);
+				}catch (NoSuchFieldException nsm){
+					debug1("sov - nsm "+vo.getFieldName());
+					throw new DRNoMatchException("NoSuchFieldExcep - bigint "+vo.getFieldName());
+				} catch (IllegalArgumentException iae) {
+					debug1("sov - iae - "+vo.getFieldName());
+					throw new DRNoMatchException("IllegalArgumentExcep - bigint "+vo.getFieldName());
+				}catch (IllegalAccessException acce) {
+					debug1("sov - acce - "+vo.getFieldName());
+					throw new DRNoMatchException("IllegalAccessExcep - bigint "+vo.getFieldName());
+				}
+			}
+		}
+		if (op.equals("avg")) bigtot = bigtot.divide(new BigInteger(Integer.toString(obj.length)));
+
+		return bigtot;
 	}
 	//================================================
 	public long getLong(String op, String fieldName, T[] obj)
@@ -386,6 +501,7 @@ public class DRFind<T>
 			if (vo.getFieldType().equals("double")) dval = Double.valueOf((Double)x);
 			if (vo.getFieldType().equals("short")) dval = Double.parseDouble(Short.toString((Short)x));
 			if (vo.getFieldType().equals("BigDecimal")) dval = Double.parseDouble(((BigDecimal)x).toString());
+			if (vo.getFieldType().equals("BigInteger")) dval = Double.parseDouble(((BigInteger)x).toString());
 		}else{
 			try{
 				//debug("sov - x="+x.toString()+" ft="+fieldType+" fn="+fieldName);
@@ -399,7 +515,10 @@ public class DRFind<T>
 				if (vo.getFieldType().equals("double")) dval = Double.valueOf(f.getDouble(x));
 				if (vo.getFieldType().equals("short")) dval = Double.parseDouble(Short.toString(f.getShort(x)));
 				if (vo.getFieldType().equals("BigDecimal")) dval = Double.parseDouble(((BigDecimal) f.get(x)).toString());  //new BigDecimal((String)f.get(x));
+				if (vo.getFieldType().equals("BigInteger")) dval = Double.parseDouble(((BigInteger) f.get(x)).toString());  //new BigInteger((String)f.get(x));
 
+			}catch (NullPointerException npe){
+				dval = 0.0;
 			}catch (NoSuchFieldException nsm){
 				debug1("sov - nsm "+vo.getFieldName());
 				throw new DRNoMatchException("NoSuchFieldExcep - "+vo.getFieldName());
@@ -634,7 +753,7 @@ public class DRFind<T>
 		String[] xx = new String[obj.length];
 		for (int i = 0; i < obj.length; i++){ 
 			vo.setObjValue(obj[i]);
-			xx[i] = (String)vo.getObjValue();
+			xx[i] = (String)vo.getObjValue();;
 		}
 
 		return xx;
@@ -654,7 +773,9 @@ public class DRFind<T>
 		private float vFloat;
 		private double vDouble;
 		private char vChar;
+		private boolean vBool;
 		private BigDecimal vbgd;
+		private BigInteger vbgi;
 
 		private String oString;
 		private int oInt;
@@ -664,7 +785,9 @@ public class DRFind<T>
 		private float oFloat;
 		private double oDouble;
 		private char oChar;
+		private boolean oBool;
 		private BigDecimal obgd;
+		private BigInteger obgi;
 
 		String zeroes = "000000000000000000";
 
@@ -714,6 +837,7 @@ public class DRFind<T>
 	
 			if (fieldType.equals("String")) vString = x;
 			if (fieldType.equals("int")) vInt = Integer.parseInt(x);
+			if (fieldType.equals("boolean")) vBool = Boolean.parseBoolean(x);
 			if (fieldType.equals("long")) vLong = Long.parseLong(x);
 			if (fieldType.equals("float")) vFloat = Float.parseFloat(x);
 			if (fieldType.equals("byte")) vByte = Byte.parseByte(x);
@@ -721,6 +845,7 @@ public class DRFind<T>
 			if (fieldType.equals("short")) vShort = Short.parseShort(x);
 			if (fieldType.equals("char")) vChar = x.charAt(0);
 			if (fieldType.equals("BigDecimal")) vbgd = new BigDecimal(x);
+			if (fieldType.equals("BigInteger")) vbgi = new BigInteger(x);
 
 		}
 		//================================================	
@@ -733,6 +858,7 @@ public class DRFind<T>
 			if (fieldType.equals("short")) vString = Short.toString(oShort);
 			if (fieldType.equals("char")) vString = Character.toString(oChar);
 			if (fieldType.equals("BigDecimal")) vString = vbgd.toString();
+			if (fieldType.equals("BigInteger")) vString = vbgi.toString();
 			return vString;
 		}
 		//===============================================================
@@ -742,6 +868,7 @@ public class DRFind<T>
 			if (this.fieldName.length() == 0){
 				if (fieldType.equals("String")) oString = (String)x;
 				if (fieldType.equals("int")) oInt = Integer.valueOf((Integer)x);
+				if (fieldType.equals("boolean")) oBool = (Boolean)x;
 				if (fieldType.equals("long")) oLong = Long.valueOf((Long)x);
 				if (fieldType.equals("float")) oFloat = Float.valueOf((Float)x);
 				if (fieldType.equals("byte")) oByte = Byte.valueOf((Byte)x);
@@ -749,12 +876,14 @@ public class DRFind<T>
 				if (fieldType.equals("short")) oShort = Short.valueOf((Short)x);
 				if (fieldType.equals("char")) oChar = Character.valueOf((Character)x);
 				if (fieldType.equals("BigDecimal")) obgd = (BigDecimal) x;
+				if (fieldType.equals("BigInteger")) obgi = (BigInteger) x;
 			}else{
 				try{
 					//debug("sov - x="+x.toString()+" ft="+fieldType+" fn="+fieldName);
 					Class c1 = x.getClass();
 					Field f = c1.getDeclaredField(fieldName);
 					f.setAccessible(true);
+					if (fieldType.equals("boolean")) oBool = Boolean.valueOf(f.getBoolean(x));
 					if (fieldType.equals("String")) oString = (String)f.get(x);
 					if (fieldType.equals("int")) oInt = Integer.valueOf(f.getInt(x));
 					if (fieldType.equals("long")) oLong = Long.valueOf(f.getLong(x));
@@ -764,6 +893,7 @@ public class DRFind<T>
 					if (fieldType.equals("short")) oShort = Short.valueOf(f.getShort(x));
 					if (fieldType.equals("char")) oChar = Character.valueOf(f.getChar(x));
 					if (fieldType.equals("BigDecimal")) obgd = (BigDecimal) f.get(x);  //new BigDecimal((String)f.get(x));
+					if (fieldType.equals("BigInteger")) obgi = (BigInteger) f.get(x);  //new BigInteger((String)f.get(x));
 
 				}catch (NoSuchFieldException nsm){
 					debug("sov - nsm "+fieldName+" "+oString);
@@ -781,14 +911,21 @@ public class DRFind<T>
 		//==================================================
 		public Object getObjValue(){
 
-			if (fieldType.equals("int")) oString = Integer.toString(oInt);
-			if (fieldType.equals("long")) oString = Long.toString(oLong);
-			if (fieldType.equals("float")) oString = Float.toString(oFloat);
-			if (fieldType.equals("byte")) oString = Byte.toString(oByte);
-			if (fieldType.equals("double")) oString = Double.toString(oDouble);
-			if (fieldType.equals("short")) oString = Short.toString(oShort);
-			if (fieldType.equals("char")) oString = Character.toString(oChar);
-			if (fieldType.equals("BigDecimal")) oString = obgd.toString();
+			try
+			{
+				if (fieldType.equals("int")) oString = Integer.toString(oInt);
+				if (fieldType.equals("boolean")) oString = Boolean.toString(oBool);
+				if (fieldType.equals("long")) oString = Long.toString(oLong);
+				if (fieldType.equals("float")) oString = Float.toString(oFloat);
+				if (fieldType.equals("byte")) oString = Byte.toString(oByte);
+				if (fieldType.equals("double")) oString = Double.toString(oDouble);
+				if (fieldType.equals("short")) oString = Short.toString(oShort);
+				if (fieldType.equals("char")) oString = Character.toString(oChar);
+				if (fieldType.equals("BigDecimal")) oString = obgd.toString();
+				if (fieldType.equals("BigInteger")) oString = obgi.toString();
+			} catch (NullPointerException npe){
+				oString = "0";
+			}
 			return oString;
 		}
 		//=======================================================
@@ -800,34 +937,42 @@ public class DRFind<T>
 				if (oString == null) oString = " "; 
 				x1 = vString.compareTo(oString);
 			}
-			if (fieldType.equals("BigDecimal")) x1 = vbgd.compareTo(obgd);
-			if (fieldType.equals("byte")){	vLong = (long)vByte;	oLong = (long)oByte;}
-			if (fieldType.equals("short")){	vLong = (long)vShort;	oLong = (long)oShort;}
-			if (fieldType.equals("int")){	vLong = (long)vInt;	oLong = (long)oInt;}
-			if (fieldType.equals("byte") || fieldType.equals("short") || fieldType.equals("int") || fieldType.equals("long")) {
-				if (vLong == oLong) x1 = 0;
-				if (vLong > oLong) x1 = 1;
-				if (vLong < oLong) x1 = -1;
+			try
+			{
+				if (fieldType.equals("BigDecimal")) x1 = vbgd.compareTo(obgd);
+				if (fieldType.equals("BigInteger")) x1 = vbgi.compareTo(obgi);
+				if (fieldType.equals("byte")){	vLong = (long)vByte;	oLong = (long)oByte;}
+				if (fieldType.equals("short")){	vLong = (long)vShort;	oLong = (long)oShort;}
+				if (fieldType.equals("int")){	vLong = (long)vInt;	oLong = (long)oInt;}
+				if (fieldType.equals("byte") || fieldType.equals("short") || fieldType.equals("int") || fieldType.equals("long")) {
+					if (vLong == oLong) x1 = 0;
+					if (vLong > oLong) x1 = 1;
+					if (vLong < oLong) x1 = -1;
+				}
+				if (fieldType.equals("float")){
+					if (vFloat == oFloat) x1 = 0;
+					if (vFloat > oFloat) x1 = 1;
+					if (vFloat < oFloat) x1 = -1;
+				}
+				if (fieldType.equals("double")){
+					if (vDouble == oDouble) x1 = 0;
+					if (vDouble > oDouble) x1 = 1;
+					if (vDouble < oDouble) x1 = -1;
+				}
+				if (fieldType.equals("char")){
+					if (vChar == oChar) x1 = 0;
+					if (vChar > oChar) x1 = 1;
+					if (vChar < oChar) x1 = -1;
+				}
+				if (fieldType.equals("boolean")){
+					if (vBool == oBool) x1 = 0; else x1 = -1;
+				}
+				if (x1 == 0) greater = 0;			//V > O
+				if (x1 > 0) greater = -1;
+				if (x1 < 0) greater = 1;
+			}catch (NullPointerException npe){
+				greater = 99;				//this null rec will be ignored
 			}
-			if (fieldType.equals("float")){
-				if (vFloat == oFloat) x1 = 0;
-				if (vFloat > oFloat) x1 = 1;
-				if (vFloat < oFloat) x1 = -1;
-			}
-			if (fieldType.equals("double")){
-				if (vDouble == oDouble) x1 = 0;
-				if (vDouble > oDouble) x1 = 1;
-				if (vDouble < oDouble) x1 = -1;
-			}
-			if (fieldType.equals("char")){
-				if (vChar == oChar) x1 = 0;
-				if (vChar > oChar) x1 = 1;
-				if (vChar < oChar) x1 = -1;
-			}
-
-			if (x1 == 0) greater = 0;			//V > O
-			if (x1 > 0) greater = -1;
-			if (x1 < 0) greater = 1;
 			debug("cv - g="+greater+" ostr="+oString+" vstr="+vString);
 
 			return greater;
