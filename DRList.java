@@ -1,12 +1,13 @@
 // to compile do from folder above C:\projects\DRList>javac -Xlint:unchecked -cp ../ DRList.java
 //========================================================================
-//	Author - David Ratcliffe	Version - 1.5	Date - 03/07/2019
+//	Author - David Ratcliffe	Version - 1.6	Date - 27/08/2019
 //
 //	ver1.1	- Add new functions to allow duplicates in BTree and reIndex, plus fix some bugs
 //	ver1.2	- Add DRFind, new search facility and sort on Objects field
 //	ver1.3	- Add new VO class DRFindObjVO, to call findand, findor, compare all primitive types and BigDecimal
 //	ver1.4	- Add new fncs to DRFindObjVO, getCount, getMax, getMin, getFieldValue, getAvg, getSum and distinct
 //	ver1.5	- Allow for nulls in fields of a VO
+//	ver1.6	- Fix bug with BigDecimal and add search facility for date fields, see DRFind
 //
 //	programs - DRList.java, DRArrayList.java, DRIndex.java, DRBTree.java, DRCode.java, DRListTBL, DRFind.java, DRFindObjVO.java
 //
@@ -49,8 +50,19 @@
 //					  searches the collection on a particular field within the object or
 //					  on the whole object if just 1 field. Fieldname can be null of a valid fieldname, the
 //					  operator can be ">","<","Like","Min","Max", the value is null for Max/Min else is passed as 
-//					  a String and will be converted to the same field type of the fieldname. If fieldname has //					  asc/dsc delimited by a space then the return object array is sorted ascending/descending
-//					  accordingly 
+//					  a String and will be converted to the same field type of the fieldname. If fieldname has 
+//					  asc/dsc delimited by a space then the return object array is sorted ascending/descending
+//					  accordingly.
+//					  if valus contains <Date>: then itassumes the field is of type long and 
+//					  3 formats are allowed for date processing
+//						format1 - <int><unit> eg 10d means 10days in the future and -10d means 10days in the past
+//							poss units are (s)ec,(m)in,(h)our,(d)ay,(w)eek,(M)onth,(y)ear
+//						format2 - <dd-mm-yyyy> from this date onwards or before
+//						format3 - <day><int> ie Sat-2 means from Sat 2weeks previously
+//obj = dl4.DRFind("purchaseDate asc",">","<Date>:-10w").getObjArray();
+//obj = dl4.DRFind("purchaseDate",">","<Date>:27-06-2019").DRFindAnd("purchaseDate dsc","<","<Date>:05-07-2019").getObjArray();
+//obj = dl4.DRFind("purchaseDate asc",">","<Date>:Mon-2").DRFindAnd("purchaseDate asc","<","<Date>:Mon2").getObjArray();
+//
 //	DRFindObjVO<T> DRFindAnd(String fieldName, String operator, String value) 
 //					- based on DRFind and allows searching on the Object array passed via class DRFindObjVO<T>
 //					  using fieldName, operator and value as extra criteria. These parameters are the same DRFind. 
