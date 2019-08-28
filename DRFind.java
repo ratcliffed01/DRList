@@ -20,9 +20,29 @@ import java.math.*;
 
 public class DRFind<T>
 {
+	long today = System.currentTimeMillis();
+	long oneday = 24 * 3600 * 1000;
+	long onehour = 3600 * 1000;
+	long onemin = 60 * 1000;
+	char[] di = {'s','m','h','d','w','M','y'};	//sec,min,hour,day,week,month,year
+	long[] din = {1000, onemin, onehour, oneday, oneday * 7, oneday * 31, oneday * 365};
+	String[] dow = {"Mon","Tue","Wed","Thu","Fri","Sat","Sun"};
+
+	byte[] md = {31,28,31,30,31,30,31,31,30,31,30,31};
+	byte[] lmd = {31,29,31,30,31,30,31,31,30,31,30,31};
+
+	Timestamp ts = Timestamp.valueOf("2019-08-19 00:00:00");			//mon
+	long baseDate = ts.getTime();
+
+	long todaydow = ((Math.abs(baseDate - today)/oneday)%7); 
+
     	//===================================================================================
     	public static void debug1(String msg){
 		//System.out.println(msg);
+    	}
+    	//===================================================================================
+    	public static void debug2(String msg){
+		System.out.println(msg);
     	}
 	//====================================================
 	public int getOpCnt(String operator) throws DRNoMatchException {
@@ -79,6 +99,116 @@ public class DRFind<T>
 			if (fieldType.indexOf("BigInteger") > -1) fieldType = "BigInteger";
 			vo.setFieldType(fieldType);
 			vo.setFieldName(fieldName);
+		}
+		return vo;
+	}
+	//=======================================================
+	public boolean isValidDate(String dateStr)
+	{
+		String xstr = "";
+		try
+		{
+			DRFind<T> drf = new DRFind<T>();
+			byte[] dom = new byte[12];
+
+			//datestr is in the format dd-mm-yyyy hh:mm:ss
+			String[] x = dateStr.split(" ");
+			String[] y = x[0].split("-");
+			byte dd = Byte.parseByte(y[0]);
+			byte mm = Byte.parseByte(y[1]);
+			int yy = Integer.parseInt(y[2]);
+			byte hh = 0;
+			byte mi = 0;
+			byte ss1 = 0;
+			if (x.length > 1){
+				y = x[1].split(":");
+				hh = Byte.parseByte(y[0]);
+				mi = Byte.parseByte(y[1]);
+				int pos = y[2].indexOf(".");
+				if (pos < 0) pos = y[2].length();
+				String z = y[2].substring(0,pos);
+				//System.out.println("z="+z);
+				ss1 = Byte.parseByte(z);
+			}
+
+			//2004 was leap year use that as the base, year 2000 was not a leap year
+			if (Math.abs(2004 - yy) % 4 == 0 && yy%100 != 0) dom = lmd; else dom = md; 	//check for leap year and century
+			//System.out.println("mm="+mm+" dd="+dd+" dom2="+dom[mm - 1]+" ti="+hh+":"+mi+":"+ss1);
+			if (mm < 1 || mm > 12) return false;
+			if (dd < 1 || dd > dom[mm - 1]) return false;
+			if (hh < 0 || hh > 23 || mi < 0 || mi > 59 || ss1 < 0 || ss1 > 59) return false;
+
+			return true;
+		}catch (Exception e){
+			//System.out.println("vdate excep - ["+xstr+"]");
+			return false;
+		}
+	}
+	//================================================
+	public DRFindVO validateDate(String fieldName, String value, DRFindVO vo, DRListTBL<T> drl, String op) 
+		throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		vo = drf.setFieldType(fieldName, vo, drl);
+
+		if (!vo.getFieldType().equals("long")) throw new DRNoMatchException("Valid date fieldtype not found");
+
+		//the field type is long now we need to check that the format is correct date format or an integer
+		vo.setDateInterval(' ');
+		for (char x:di) if (x == value.charAt(value.length() -  1)) vo.setDateInterval(x);
+		byte one = 1;								// format is dd-mm-yyyy
+		if (vo.getDateInterval() == ' ') one = 0;				//format is 10d
+		String dateStr = value.substring(value.indexOf("<Date>:")+7, value.length() - one);
+		if (vo.getDateInterval() == ' '){
+			boolean dowFound = false;
+			int dowi = 0;
+			for (int i = 0; i < dow.length; i++) {
+				if (dateStr.indexOf(dow[i]) > -1){ 
+					dowFound = true;
+					dowi = i;			//0=mon...6=sun
+					break;
+				}
+			} 
+			if (dowFound){
+				int weekno = 0;
+				try{
+					if (dateStr.length() == 3) weekno = 0;
+					else weekno = Integer.parseInt(dateStr.substring(3,dateStr.length()));
+				}catch (Exception e){throw new DRNoMatchException(e.getMessage()+" Invalid number with day of week - ["+dateStr+"]");}
+				long dowdate = (today + (dowi - todaydow)*oneday) + weekno * oneday * 7;	//dow next week week
+				DateFormat df = new SimpleDateFormat("dd-MM-yyyy 00:00:00");
+				dateStr = df.format(dowdate);
+				vo.setDateStr(dateStr);
+			}else{
+				vo.setDateIntervalNum(0);
+				if (dateStr.indexOf(":") == -1) dateStr = dateStr + " 00:00:00";
+				if (isValidDate(dateStr)) vo.setDateStr(dateStr); else throw new DRNoMatchException("Date is not valid");
+			}
+		}else{ 
+			vo.setDateIntervalNum(Integer.parseInt(dateStr));
+		}
+		vo = drf.setStartDate(vo);
+
+		vo.setValue(vo.getStartDate() + ""); 
+		vo.setVOrigString(vo.getStartDate() + "");
+
+		DateFormat df = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+		debug2("vald - ds="+dateStr+" eov="+value.charAt(value.length() - 1)+" di="+vo.getDateInterval()+" val="+value+
+			" sd="+df.format(vo.getStartDate()));
+		return vo;
+	}
+	//================================================
+	public DRFindVO setStartDate(DRFindVO vo) 
+	{
+		if (vo.getDateIntervalNum() == 0){
+			String[] x = vo.getDateStr().split(" ");
+			String[] y = x[0].split("-");
+			debug2("sd - ds="+vo.getDateStr());
+			Timestamp ts1 = Timestamp.valueOf(y[2]+"-"+y[1]+"-"+y[0]+" "+"00:00:00");	//format "2019-12-31 00:00:00"
+			vo.setStartDate(ts1.getTime());
+		}else{
+			for (int i = 0; i < di.length; i++) 
+				if (vo.getDateInterval() == di[i]) vo.setStartDate(today + (vo.getDateIntervalNum() * din[i]));
 		}
 		return vo;
 	}
@@ -149,7 +279,11 @@ public class DRFind<T>
 
 		if (drl.fdl.obj == null) throw new DRNoMatchException("ListTbl is null");
 
-		vo = drf.validateField(fieldName, value, vo, drl, operator);
+		//check if date is being validated, this will have <Date>: in the value field
+		if (value.indexOf("<Date>:") > -1)
+			vo = drf.validateDate(fieldName, value, vo, drl, operator);
+		else
+			vo = drf.validateField(fieldName, value, vo, drl, operator);
 		T[] obj = drf.DRFindInvoke(drf.getOpCnt(operator), vo, drl);
 
 		DRFindObjVO<T> avo = new DRFindObjVO<T>();
@@ -374,15 +508,15 @@ public class DRFind<T>
 
 		vo = drf.setFieldType(fieldName, vo, ndrl);
 
-		if (!vo.getFieldType().equals("BigDecimal"))
-			throw new DRNoMatchException("Field type is not of type BigDecimal");
+		if (!vo.getFieldType().equals("BigDecimal") && !op.equals("sum"))
+			throw new DRNoMatchException("Field type is not of type BigDecimal - "+vo.getFieldType());
 
 		BigDecimal bigval = new BigDecimal("0.0");
 		BigDecimal bigtot = new BigDecimal("0.0");
 		for (int i = 0; i < obj.length; i++){
 			T x = obj[i];
 			if (vo.getFieldName().length() == 0){
-				bigval = (BigDecimal)x;
+				bigval = new BigDecimal(x.toString());
 				bigtot = bigtot.add(bigval);
 			}else{
 				try{
@@ -423,7 +557,7 @@ public class DRFind<T>
 
 		vo = drf.setFieldType(fieldName, vo, ndrl);
 
-		if (!vo.getFieldType().equals("BigInteger"))
+		if (!vo.getFieldType().equals("BigInteger") && !op.equals("sum"))
 			throw new DRNoMatchException("Field type is not of type BigInteger");
 
 		BigInteger bigval = new BigInteger("0");
@@ -431,7 +565,7 @@ public class DRFind<T>
 		for (int i = 0; i < obj.length; i++){
 			T x = obj[i];
 			if (vo.getFieldName().length() == 0){
-				bigval = (BigInteger)x;
+				bigval = new BigInteger(x.toString());
 				bigtot = bigtot.add(bigval);
 			}else{
 				try{
@@ -794,11 +928,40 @@ public class DRFind<T>
 		private boolean sortAsc;
 		private boolean sortDsc;
 
+		private char dateInterval;
+		private int dateIntervalNum;
+		private String dateStr;
+		long startDate;
+
     		//===================================================================================
     		public void debug(String msg){
 			//System.out.println(msg);
  		}
 
+		public void setStartDate(long x){
+			this.startDate = x;
+		}
+		public long getStartDate(){
+			return this.startDate;
+		}
+		public void setDateStr(String x){
+			this.dateStr = x;
+		}
+		public String getDateStr(){
+			return this.dateStr;
+		}
+		public void setDateIntervalNum(int x){
+			this.dateIntervalNum = x;
+		}
+		public int getDateIntervalNum(){
+			return this.dateIntervalNum;
+		}
+		public void setDateInterval(char x){
+			this.dateInterval = x;
+		}
+		public char getDateInterval(){
+			return this.dateInterval;
+		}
 		public void setSortDsc(boolean x){
 			this.sortDsc = x;
 		}
