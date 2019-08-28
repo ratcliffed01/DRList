@@ -10,6 +10,9 @@ import java.time.*;
 import java.math.*;
 import java.lang.reflect.*;
 
+import java.time.format.*;
+import java.time.temporal.*;
+
 import DRList.DRArrayList;
 import DRList.DRIndex;
 import DRList.DRBTree;
@@ -34,6 +37,9 @@ public class DRFindTest1
 		int k = 0;
 		int l = 0;
 		boolean xflag = false;
+		long oneday = 24 * 3600 * 1000;
+		long today = System.currentTimeMillis() + oneday * 100;
+
 		for (int i = 0; i < nvoa.length; i++){
 			nvoa[i] = new nameVO();
 			nvoa[i].firstName = "Dave"+Integer.toString(l);
@@ -47,6 +53,7 @@ public class DRFindTest1
 			nvoa[i].telNo = new BigInteger(xstr);
 			if (xflag == false) xflag = true; else xflag = false;
 			nvoa[i].detached = xflag;
+			nvoa[i].purchaseDate = today - (i * oneday);
 			dl4.DRadd(nvoa[i]);
 			if (l % 100 == 0){
 				i++;
@@ -60,6 +67,7 @@ public class DRFindTest1
 				nvoa[i].houseVal = nvoa[i - 1].houseVal;
 				nvoa[i].telNo = nvoa[i - 1].telNo;
 				nvoa[i].detached = nvoa[i - 1].detached;
+				nvoa[i].purchaseDate = nvoa[i - 1].purchaseDate;
 				//System.out.println("DLT - sal="+nvoa[i].salary+"/"+nvoa[i - 1].salary+" sn="+nvoa[i].surName+"/"+
 				//nvoa[i - 1].surName+" hv="+nvoa[i].houseVal+"/"+nvoa[i - 1].houseVal+" pc="+nvoa[i].postCode+"/"+
 				//nvoa[i - 1].postCode+" fn="+nvoa[i].firstName+"/"+nvoa[i - 1].firstName+" hn="+nvoa[i].houseNo+"/"+
@@ -169,6 +177,29 @@ public class DRFindTest1
 				.DRFindAnd("detached","=","false").getObjArray();
 			System.out.println("DLT - bigi objlen="+obj.length);
 
+			obj = dl4.DRFind("purchaseDate asc",">","<Date>:-10d").getObjArray();
+			nvo = (nameVO)obj[0];
+			DateFormat df = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+			System.out.println("DLT - dated objlen="+obj.length+" lastd="+df.format(nvo.purchaseDate));
+
+			obj = dl4.DRFind("purchaseDate asc",">","<Date>:-10w").getObjArray();
+			nvo = (nameVO)obj[0];
+			System.out.println("DLT - datew objlen="+obj.length+" lastd="+df.format(nvo.purchaseDate));
+
+			obj = dl4.DRFind("purchaseDate asc",">","<Date>:-10h").getObjArray();
+			nvo = (nameVO)obj[0];
+			System.out.println("DLT - dateh objlen="+obj.length+" lastd="+df.format(nvo.purchaseDate));
+
+			obj = dl4.DRFind("purchaseDate",">","<Date>:27-06-2019").DRFindAnd("purchaseDate dsc","<","<Date>:05-07-2019")
+				.getObjArray();
+			nvo = (nameVO)obj[0];
+			System.out.println("DLT - dateh objlen="+obj.length+" lastd="+df.format(nvo.purchaseDate));
+
+			obj = dl4.DRFind("purchaseDate asc",">","<Date>:Mon-2").DRFindAnd("purchaseDate asc","<","<Date>:Mon2")
+				.getObjArray();
+			nvo = (nameVO)obj[0];
+			System.out.println("DLT - dateh objlen="+obj.length+" lastd="+df.format(nvo.purchaseDate));
+
 		}catch (DRNoMatchException dnm){
 			System.out.println("DLT - like99 err dn "+dnm.getMessage());
 		}
@@ -199,6 +230,19 @@ public class DRFindTest1
 		}catch (DRNoMatchException dnm){
 			System.out.println("DLT - intarray err dn "+dnm.getMessage());
 		}
+		String dateStr = "2019-02-30 00:00:00";
+		Timestamp ts1 = Timestamp.valueOf("2019-12-31 00:00:00");
+		long t1 = ts1.getTime(); 
+		DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+		DRFind drf= new DRFind();
+
+		Timestamp ts = Timestamp.valueOf("2019-08-26 00:00:00");			//mon
+		long baseDate = ts.getTime();
+
+		long todaydow = 7 - ((Math.abs(baseDate - today)/oneday)%7 + 1); 
+
+		System.out.println("TST - 2day="+today+" gt="+ts1.getTime()+" 2date="+df.format(today-oneday*15)+
+				" tdow="+todaydow);
 		System.out.println("DLT - ti="+(System.currentTimeMillis() - sti)+"ms");
 
 	}
@@ -213,6 +257,7 @@ public class DRFindTest1
 		BigDecimal houseVal;
 		BigInteger telNo;
 		boolean detached;
+		long purchaseDate;
 	}
 	//============================================
 	public static class knapVO {
