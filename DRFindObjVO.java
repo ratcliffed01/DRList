@@ -22,6 +22,9 @@ public class DRFindObjVO<T>
 	private T[] obj;
 	private DRListTBL<T> xdrl;
 
+	public void debug(String msg){
+		System.out.println(msg);
+	}
 	public void setObjArray(T[] o){
 		this.obj = o;
 	}
@@ -52,203 +55,87 @@ public class DRFindObjVO<T>
 	//===============================================================================
 	@SuppressWarnings("unchecked")
 	public <Any> Any getMax(String fieldName) throws DRNoMatchException {
-		
-		DRFind<T> drf = new DRFind<T>();
-		String ft = drf.getFieldType(fieldName,this.obj).toUpperCase();
-		String[] xx = drf.getFieldString(fieldName,this.obj);
-    		if (ft.equals("DOUBLE")||ft.equals("FLOAT")) {
-			Double[] xxd = new Double[xx.length];
-			double maxd = 0.0d;
-			for (int i = 0; i < xx.length; i++) if (xx[i] != null) xxd[i] =Double.parseDouble(xx[i]);
-			for (int i = 0; i < xx.length; i++) if (xxd[i] > maxd) maxd = xxd[i];
-			if (ft.equals("FLOAT")) return (Any)(Float)(float)maxd;
-        		return (Any)(Double)maxd;
-    		}else if (ft.equals("LONG")||ft.equals("INT")||ft.equals("SHORT")||ft.equals("BYTE")) {
-			Long[] xxl = new Long[xx.length];
-			long maxl = 0;
-			for (int i = 0; i < xx.length; i++) if (xx[i] != null) xxl[i] = Long.parseLong(xx[i]);
-			for (int i = 0; i < xx.length; i++) if (xxl[i] > maxl) maxl = xxl[i];
-			if (ft.equals("INT")) return (Any)(Integer)(int)maxl;
- 			if (ft.equals("SHORT")) return (Any)(Short)(short)maxl;
-			if (ft.equals("BYTE")) return (Any)(Byte)(byte)maxl;
-          		return (Any)(Long)maxl;
-		}else if (ft.equals("BIGDECIMAL")){
-			BigDecimal[] xxb = new BigDecimal[xx.length];
-			BigDecimal maxb = new BigDecimal("0.0");
-			for (int i = 0; i < xx.length; i++) xxb[i] = new BigDecimal(xx[i]);
-			for (int i = 0; i < xx.length; i++) if (xxb[i] != null && xxb[i].compareTo(maxb) > 0) maxb = xxb[i];
-          		return (Any)(BigDecimal)maxb;
-		}else if (ft.equals("BIGINTEGER")){
-			BigInteger[] xxb = new BigInteger[xx.length];
-			BigInteger maxb = new BigInteger("0");
-			for (int i = 0; i < xx.length; i++) xxb[i] = new BigInteger(xx[i]);
-			for (int i = 0; i < xx.length; i++) if (xxb[i] != null && xxb[i].compareTo(maxb) > 0) maxb = xxb[i];
-          		return (Any)(BigInteger)maxb;
-		}else if (ft.equals("STRING")) {
-			String maxs = "";
-			for (int i = 0; i < xx.length; i++) if (xx[i] != null && xx[i].compareTo(maxs) > 0) maxs = xx[i];
-			return (Any)(String)maxs;
-		}else{
-	        	throw new DRNoMatchException("Invalid field type "+ft);
-		}
+		return invokeMaxMin(fieldName, "getMax");
 	}
 	//===============================================================================
 	@SuppressWarnings("unchecked")
 	public <Any> Any getMin(String fieldName) throws DRNoMatchException {
-		
+		return invokeMaxMin(fieldName, "getMin");
+	}
+	//===============================================================================
+	@SuppressWarnings("unchecked")
+	public <Any> Any invokeMaxMin(String fieldName, String mName) throws DRNoMatchException {
 		DRFind<T> drf = new DRFind<T>();
 		String ft = drf.getFieldType(fieldName,this.obj).toUpperCase();
 		String[] xx = drf.getFieldString(fieldName,this.obj);
-    		if (ft.equals("DOUBLE")||ft.equals("FLOAT")) {
-			Double[] xxd = new Double[xx.length];
-			for (int i = 0; i < xx.length; i++) xxd[i] = Double.parseDouble(xx[i]);
-			double mind = xxd[0];
-			for (int i = 0; i < xx.length; i++) if (xxd[i] != null && xxd[i] < mind) mind = xxd[i];
-			if (ft.equals("FLOAT")) return (Any)(Float)(float)mind;
-        		return (Any)(Double)mind;
-    		}else if (ft.equals("LONG")||ft.equals("INT")||ft.equals("SHORT")||ft.equals("BYTE")) {
-			Long[] xxl = new Long[xx.length];
-			for (int i = 0; i < xx.length; i++) xxl[i] = Long.parseLong(xx[i]);
-			long minl = xxl[0];
-			for (int i = 0; i < xx.length; i++) if (xxl[i] != null && xxl[i] < minl) minl = xxl[i];
-			if (ft.equals("INT")) return (Any)(Integer)(int)minl;
- 			if (ft.equals("SHORT")) return (Any)(Short)(short)minl;
-			if (ft.equals("BYTE")) return (Any)(Byte)(byte)minl;
-          		return (Any)(Long)minl;
-		}else if (ft.equals("BIGDECIMAL")){
-			BigDecimal[] xxb = new BigDecimal[xx.length];
-			BigDecimal minb = new BigDecimal(xx[0]);
-			for (int i = 0; i < xx.length; i++) xxb[i] = new BigDecimal(xx[i]);
-			for (int i = 0; i < xx.length; i++) if (xxb[i] != null && xxb[i].compareTo(minb) < 0) minb = xxb[i];
-          		return (Any)(BigDecimal)minb;
-		}else if (ft.equals("BIGINTEGER")){
-			BigInteger[] xxb = new BigInteger[xx.length];
-			BigInteger minb = new BigInteger(xx[0]);
-			for (int i = 0; i < xx.length; i++) xxb[i] = new BigInteger(xx[i]);
-			for (int i = 0; i < xx.length; i++) if (xxb[i] != null && xxb[i].compareTo(minb) < 0) minb = xxb[i];
-          		return (Any)(BigInteger)minb;
-		}else if (ft.equals("STRING")) {
-			String mins = xx[0];
-			for (int i = 0; i < xx.length; i++) if (xx[i] != null && xx[i].compareTo(mins) < 0) mins = xx[i];
-			return (Any)(String)mins;
-		}else{
-	        	throw new DRNoMatchException("Invalid field type "+ft);
+		try{
+			getNumericVO gn = new getNumericVO();
+			String methodName = mName+ft;
+			Class[] cArg = new Class[1]; 
+			cArg[0] = String[].class;
+ 			Method m = gn.getClass().getDeclaredMethod(methodName,cArg);
+			Object[] param = {xx};
+			return (Any)m.invoke(gn,param);
+
+		} catch (IllegalAccessException|NullPointerException|NoSuchMethodException|InvocationTargetException yy){ 
+			throw new DRNoMatchException("Error maxmin finding entered field type "+ft+" "+yy.toString());
 		}
-	}	//===============================================================================
+	}
+	//===============================================================================
 	@SuppressWarnings("unchecked")
 	public <Any> Any[] getFieldValue(String fieldName) throws DRNoMatchException {
 		DRFind<T> drf = new DRFind<T>();
 		String ft = drf.getFieldType(fieldName,this.obj).toUpperCase();
 		String[] xx = drf.getFieldString(fieldName,this.obj);
-		//System.out.println("gfv - ft=["+ft+"] xx0="+xx[0]+" xxl="+xx.length);
-    		if (ft.equals("DOUBLE")) {
-			Double[] xxd = new Double[xx.length];
-			for (int i = 0; i < xx.length; i++) xxd[i] = Double.parseDouble(xx[i]);
-        		return (Any[])(Double[])xxd;
-    		}else if (ft.equals("FLOAT")) {
-			Float[] xxd = new Float[xx.length];
-			for (int i = 0; i < xx.length; i++) xxd[i] = Float.parseFloat(xx[i]);
-        		return (Any[])(Float[])xxd;
-    		}else if (ft.equals("LONG")) {
-			Long[] xxd = new Long[xx.length];
-			for (int i = 0; i < xx.length; i++) xxd[i] = Long.parseLong(xx[i]);
-        		return (Any[])(Long[])xxd;
-    		}else if (ft.equals("INT")) {
-			System.out.println("gfv - 1ft=["+ft+"] xx0="+xx[0]+" xxl="+xx.length);
-			Integer[] xxd = new Integer[xx.length];
-			for (int i = 0; i < xx.length; i++) xxd[i] = Integer.parseInt(xx[i]);
-        		return (Any[])(Integer[])xxd;
-    		}else if (ft.equals("BYTE")) {
-			Byte[] xxd = new Byte[xx.length];
-			for (int i = 0; i < xx.length; i++) xxd[i] = Byte.parseByte(xx[i]);
-        		return (Any[])(Byte[])xxd;
-    		}else if (ft.equals("SHORT")) {
-			Short[] xxd = new Short[xx.length];
-			for (int i = 0; i < xx.length; i++) xxd[i] = Short.parseShort(xx[i]);
-        		return (Any[])(Short[])xxd;
-    		}else if (ft.equals("CHAR")) {
-			Character[] xxd = new Character[xx.length];
-			for (int i = 0; i < xx.length; i++) xxd[i] = xx[i].charAt(0);
-        		return (Any[])(Character[])xxd;
-    		}else if (ft.equals("BIGDECIMAL")) {
-			BigDecimal[] xxd = new BigDecimal[xx.length];
-			for (int i = 0; i < xx.length; i++) xxd[i] = new BigDecimal(xx[i]);
-        		return (Any[])(BigDecimal[])xxd;
-    		}else if (ft.equals("BIGINTEGER")) {
-			BigInteger[] xxd = new BigInteger[xx.length];
-			for (int i = 0; i < xx.length; i++) xxd[i] = new BigInteger(xx[i]);
-        		return (Any[])(BigInteger[])xxd;
-    		}
-		if (ft.equals("STRING")) {
-			return (Any[])xx;
-		}else{
-	        	throw new DRNoMatchException("Invalid field type "+ft);
+		try{
+			getNumericVO gn = new getNumericVO();
+			String methodName = "getField"+ft;
+			Class[] cArg = new Class[1]; 
+			cArg[0] = String[].class;
+ 			Method m = gn.getClass().getDeclaredMethod(methodName,cArg);
+			Object[] param = {xx};
+			return (Any[])m.invoke(gn,param);
+
+		} catch (IllegalAccessException|NullPointerException|NoSuchMethodException|InvocationTargetException yy){ 
+			throw new DRNoMatchException("Error getfield finding entered field type "+ft+" "+yy.toString());
 		}
 	}
 	//===============================================================================
 	@SuppressWarnings("unchecked")
 	public <Any> Any getAvg(String fieldName) throws DRNoMatchException {
 		DRFind<T> drf = new DRFind<T>();
-		String ft = drf.getFieldType(fieldName,this.obj).toUpperCase();
-    		if (ft.equals("DOUBLE")) {
-        		return (Any)((Double)(double)getDouble("avg", fieldName));
-    		}else if (ft.equals("FLOAT")) {
-        		return (Any)((Float)(float)getDouble("avg", fieldName));
-    		}else if (ft.equals("BIGDECIMAL")) {
-			BigDecimal xx = getBigDecimal("avg", fieldName);
-        		return (Any)(BigDecimal)xx;
-    		}else if (ft.equals("BIGINTEGER")) {
-			BigInteger xx = getBigInteger("avg", fieldName);
-        		return (Any)(BigInteger)xx;
-    		}else if (ft.equals("LONG")){
-        		return (Any)((Long)(long)getLong("avg", fieldName));
-    		}else if (ft.equals("INT")){
-        		return (Any)((Integer)(int)getLong("avg", fieldName));
-		}else{
-        		throw new DRNoMatchException("Invalid field type "+ft);
-    		}
+		String fieldType = drf.getFieldType(fieldName,this.obj).toUpperCase();
+		return invokeMethods(fieldName, fieldType, "avg", "get");
 	}
 	//===============================================================================
 	@SuppressWarnings("unchecked")
 	public <Any> Any getSum(String fieldName, String fieldType) throws DRNoMatchException {
+		return invokeMethods(fieldName, fieldType, "sum", "get");
+	}
+	//===============================================================================
+	@SuppressWarnings("unchecked")
+	public <Any> Any invokeMethods(String fieldName, String fieldType, String op, String mName) throws DRNoMatchException {
 		String ft = fieldType.toUpperCase();
-    		if (ft.equals("DOUBLE")) {
-        		return (Any)((Double)(double)getDouble("sum", fieldName));
-    		}else if (ft.equals("FLOAT")) {
-        		return (Any)((Float)(float)getDouble("sum", fieldName));
-    		}else if (ft.equals("BIGDECIMAL")) {
-			BigDecimal xx = getBigDecimal("sum", fieldName);
-        		return (Any)(BigDecimal)xx;
-    		}else if (ft.equals("BIGINTEGER")) {
-			BigInteger xx = getBigInteger("sum", fieldName);
-        		return (Any)(BigInteger)xx;
-    		}else if (ft.equals("LONG")){
-        		return (Any)((Long)(long)getLong("sum", fieldName));
-    		}else if (ft.equals("INTEGER")){
-        		return (Any)((Integer)(int)getLong("sum", fieldName));
-		}else{
-        		throw new DRNoMatchException("Invalid field type "+ft);
-    		}
-	}
-	//===========================================================================
-	public double getDouble(String operator, String fieldName) throws DRNoMatchException {
 		DRFind<T> drf = new DRFind<T>();
-		return drf.getDouble(operator, fieldName, this.obj);	//operator can be avg or sum
-	}
-	//===========================================================================
-	public BigDecimal getBigDecimal(String operator, String fieldName) throws DRNoMatchException {
-		DRFind<T> drf = new DRFind<T>();
-		return drf.getBigDecimal(operator, fieldName, this.obj);	//operator can be avg or sum
-	}
-	//===========================================================================
-	public BigInteger getBigInteger(String operator, String fieldName) throws DRNoMatchException {
-		DRFind<T> drf = new DRFind<T>();
-		return drf.getBigInteger(operator, fieldName, this.obj);	//operator can be avg or sum
-	}
-	//============================================================================
-	public long getLong(String operator, String fieldName) throws DRNoMatchException {
-		DRFind<T> drf = new DRFind<T>();
-		return drf.getLong(operator, fieldName, this.obj);	//operator can be avg or sum
+		String ft1 = drf.getFieldType(fieldName,this.obj).toUpperCase();
+		if (ft1.equals("STRING")||ft1.equals("CHARACTER")||ft1.equals("BOOLEAN")) 
+			throw new DRNoMatchException("Field type is not of type numeric "+fieldName);
+		if (ft.equals("STRING")||ft.equals("CHARACTER")||ft.equals("BOOLEAN")) 
+			throw new DRNoMatchException("Entered Field type is not of type numeric "+fieldName);
+
+		try{
+			getNumericVO gn = new getNumericVO();
+			String methodName = mName+ft;
+			Class[] cArg = new Class[2]; 
+			cArg[0] = String.class;
+			cArg[1] = String.class;
+ 			Method m = gn.getClass().getDeclaredMethod(methodName,cArg);
+			Object[] param = {op,fieldName};
+			return (Any)m.invoke(gn,param);
+
+		} catch (IllegalAccessException|NullPointerException|NoSuchMethodException|InvocationTargetException xx){ 
+			throw new DRNoMatchException("Error invmeth finding entered field type "+ft1+" "+xx.toString()+" "+xx.getCause());
+		}
 	}
 	public void setDRL(DRListTBL<T> xdrl){
 		//System.out.println("sd - "+xdrl.size);
@@ -272,5 +159,199 @@ public class DRFindObjVO<T>
 	{
 		DRFind<T> drf = new DRFind<T>();
 		return drf.FindMinus(fieldName, operator, value, this.obj);
+	}
+	//============================================
+	public class getNumericVO{
+
+		public Double getDOUBLE(String operator, String fieldName) throws DRNoMatchException {
+			DRFind<T> drf = new DRFind<T>();
+			return (Double)(double)drf.getDouble(operator, fieldName, obj);	//operator can be avg or sum
+		}
+		public Float getFLOAT(String operator, String fieldName) throws DRNoMatchException {
+			DRFind<T> drf = new DRFind<T>();
+			return (Float)(float)drf.getDouble(operator, fieldName, obj);	//operator can be avg or sum
+		}
+		public BigDecimal getBIGDECIMAL(String operator, String fieldName) throws DRNoMatchException {
+			DRFind<T> drf = new DRFind<T>();
+			return (BigDecimal)drf.getBigDecimal(operator, fieldName, obj);	//operator can be avg or sum
+		}
+		public BigInteger getBIGINTEGER(String operator, String fieldName) throws DRNoMatchException {
+			DRFind<T> drf = new DRFind<T>();
+			return drf.getBigInteger(operator, fieldName, obj);	//operator can be avg or sum
+		}
+		public Long getLONG(String operator, String fieldName) throws DRNoMatchException {
+			DRFind<T> drf = new DRFind<T>();
+			return (Long)(long)drf.getLong(operator, fieldName, obj);	//operator can be avg or sum
+		}
+		public Integer getINTEGER(String operator, String fieldName) throws DRNoMatchException {
+			DRFind<T> drf = new DRFind<T>();
+			return (Integer)(int)drf.getLong(operator, fieldName, obj);	//operator can be avg or sum
+		}
+		public Short getSHORT(String operator, String fieldName) throws DRNoMatchException {
+			DRFind<T> drf = new DRFind<T>();
+			return (Short)(short)drf.getLong(operator, fieldName, obj);	//operator can be avg or sum
+		}
+		public Byte getBYTE(String operator, String fieldName) throws DRNoMatchException {
+			DRFind<T> drf = new DRFind<T>();
+			return (Byte)(byte)drf.getLong(operator, fieldName, obj);	//operator can be avg or sum
+		}
+		public Double getMinDOUBLE(String[] xx){
+			double mind = Double.parseDouble(xx[0]);
+			for (int i = 0; i < xx.length; i++) if (xx[i] != null && Double.parseDouble(xx[i]) < mind) 
+									mind = Double.parseDouble(xx[i]);
+        		return (Double)mind;
+		}
+		public Float getMinFLOAT(String[] xx) {
+			float mind = Float.parseFloat(xx[0]);
+			for (int i = 0; i < xx.length; i++) if (xx[i] != null && Float.parseFloat(xx[i]) < mind) mind = Float.parseFloat(xx[i]);
+        		return (Float)mind;
+		}
+		public Long getMinLONG(String[] xx) {
+			long mind = Long.parseLong(xx[0]);
+			for (int i = 0; i < xx.length; i++) if (xx[i] != null && Long.parseLong(xx[i]) < mind) mind = Long.parseLong(xx[i]);
+        		return (Long)mind;
+		}
+		public Short getMinSHORT(String[] xx) {
+			short mind = Short.parseShort(xx[0]);
+			for (int i = 0; i < xx.length; i++) if (xx[i] != null && Short.parseShort(xx[i]) < mind) mind = Short.parseShort(xx[i]);
+        		return (Short)mind;
+		}
+		public Byte getMinBYTE(String[] xx) {
+			byte mind = Byte.parseByte(xx[0]);
+			for (int i = 0; i < xx.length; i++) if (xx[i] != null && Byte.parseByte(xx[i]) < mind) mind = Byte.parseByte(xx[i]);
+        		return (Byte)mind;
+		}
+		public Integer getMinINTEGER(String[] xx) {
+			int mind = Integer.parseInt(xx[0]);
+			for (int i = 0; i < xx.length; i++) if (xx[i] != null && Integer.parseInt(xx[i]) < mind) mind = Integer.parseInt(xx[i]);
+        		return (Integer)mind;
+		}
+		public BigDecimal getMinBIGDECIMAL(String[] xx) {
+			BigDecimal[] xxb = new BigDecimal[xx.length];
+			BigDecimal minb = new BigDecimal(xx[0]);
+			for (int i = 0; i < xx.length; i++){ 
+				xxb[i] = new BigDecimal(xx[i]);
+				if (xxb[i] != null && xxb[i].compareTo(minb) < 0) minb = xxb[i];
+			}
+          		return (BigDecimal)minb;
+		}
+		public BigInteger getMinBIGINTEGER(String[] xx) {
+			BigInteger[] xxb = new BigInteger[xx.length];
+			BigInteger minb = new BigInteger(xx[0]);
+			for (int i = 0; i < xx.length; i++){
+				xxb[i] = new BigInteger(xx[i]);
+				if (xxb[i] != null && xxb[i].compareTo(minb) < 0) minb = xxb[i];
+			}
+          		return (BigInteger)minb;
+		}
+		public String getMinSTRING(String[] xx) {
+			String mins = xx[0];
+			for (int i = 0; i < xx.length; i++) if (xx[i] != null && xx[i].compareTo(mins) < 0) mins = xx[i];
+			return (String)mins;
+		}
+		//============================================================================
+		public Double getMaxDOUBLE(String[] xx){
+			double mind = Double.parseDouble(xx[0]);
+			for (int i = 0; i < xx.length; i++) if (xx[i] != null && Double.parseDouble(xx[i]) > mind) 
+									mind = Double.parseDouble(xx[i]);
+        		return (Double)mind;
+		}
+		public Float getMaxFLOAT(String[] xx) {
+			float mind = Float.parseFloat(xx[0]);
+			for (int i = 0; i < xx.length; i++) if (xx[i] != null && Float.parseFloat(xx[i]) > mind) mind = Float.parseFloat(xx[i]);
+        		return (Float)mind;
+		}
+		public Long getMaxLONG(String[] xx) {
+			long mind = Long.parseLong(xx[0]);
+			for (int i = 0; i < xx.length; i++) if (xx[i] != null && Long.parseLong(xx[i]) > mind) mind = Long.parseLong(xx[i]);
+        		return (Long)mind;
+		}
+		public Short getMaxSHORT(String[] xx) {
+			short mind = Short.parseShort(xx[0]);
+			for (int i = 0; i < xx.length; i++) if (xx[i] != null && Short.parseShort(xx[i]) > mind) mind = Short.parseShort(xx[i]);
+        		return (Short)mind;
+		}
+		public Byte getMaxBYTE(String[] xx) {
+			byte mind = Byte.parseByte(xx[0]);
+			for (int i = 0; i < xx.length; i++) if (xx[i] != null && Byte.parseByte(xx[i]) > mind) mind = Byte.parseByte(xx[i]);
+        		return (Byte)mind;
+		}
+		public Integer getMaxINTEGER(String[] xx) {
+			int mind = Integer.parseInt(xx[0]);
+			for (int i = 0; i < xx.length; i++) if (xx[i] != null && Integer.parseInt(xx[i]) > mind) mind = Integer.parseInt(xx[i]);
+        		return (Integer)mind;
+		}
+		public BigDecimal getMaxBIGDECIMAL(String[] xx) {
+			BigDecimal[] xxb = new BigDecimal[xx.length];
+			BigDecimal minb = new BigDecimal(xx[0]);
+			for (int i = 0; i < xx.length; i++){ 
+				xxb[i] = new BigDecimal(xx[i]);
+				if (xxb[i] != null && xxb[i].compareTo(minb) > 0) minb = xxb[i];
+			}
+          		return (BigDecimal)minb;
+		}
+		public BigInteger getMaxBIGINTEGER(String[] xx) {
+			BigInteger[] xxb = new BigInteger[xx.length];
+			BigInteger minb = new BigInteger(xx[0]);
+			for (int i = 0; i < xx.length; i++){
+				xxb[i] = new BigInteger(xx[i]);
+				if (xxb[i] != null && xxb[i].compareTo(minb) > 0) minb = xxb[i];
+			}
+          		return (BigInteger)minb;
+		}
+		public String getMaxSTRING(String[] xx) {
+			String mins = xx[0];
+			for (int i = 0; i < xx.length; i++) if (xx[i] != null && xx[i].compareTo(mins) > 0) mins = xx[i];
+			return (String)mins;
+		}
+		//============================================================================
+		public Double[] getFieldDOUBLE(String[] xx) {
+			Double[] xxd = new Double[xx.length];
+			for (int i = 0; i < xx.length; i++) xxd[i] = Double.parseDouble(xx[i]);
+        		return (Double[])xxd;
+		}
+		public Float[] getFieldFLOAT(String[] xx) {
+			Float[] xxd = new Float[xx.length];
+			for (int i = 0; i < xx.length; i++) xxd[i] = Float.parseFloat(xx[i]);
+        		return (Float[])xxd;
+		}
+		public Long[] getFieldLONG(String[] xx) {
+			Long[] xxd = new Long[xx.length];
+			for (int i = 0; i < xx.length; i++) xxd[i] = Long.parseLong(xx[i]);
+        		return (Long[])xxd;
+		}
+		public Integer[] getFieldINTEGER(String[] xx) throws DRNoMatchException {
+			Integer[] xxd = new Integer[xx.length];
+			for (int i = 0; i < xx.length; i++) xxd[i] = Integer.parseInt(xx[i]);
+        		return (Integer[])xxd;
+		}
+		public Byte[] getFieldBYTE(String[] xx) {
+			Byte[] xxd = new Byte[xx.length];
+			for (int i = 0; i < xx.length; i++) xxd[i] = Byte.parseByte(xx[i]);
+        		return (Byte[])xxd;
+		}
+		public Short[] getFieldSHORT(String[] xx) {
+			Short[] xxd = new Short[xx.length];
+			for (int i = 0; i < xx.length; i++) xxd[i] = Short.parseShort(xx[i]);
+        		return (Short[])xxd;
+		}
+		public Character[] getFieldCHARACTER(String[] xx) {
+			Character[] xxd = new Character[xx.length];
+			for (int i = 0; i < xx.length; i++) xxd[i] = xx[i].charAt(0);
+        		return (Character[])xxd;
+		}
+		public BigDecimal[] getFieldBIGDECIMAL(String[] xx) {
+			BigDecimal[] xxd = new BigDecimal[xx.length];
+			for (int i = 0; i < xx.length; i++) xxd[i] = new BigDecimal(xx[i]);
+        		return (BigDecimal[])xxd;
+		}
+		public BigInteger[] getFieldBIGINTEGER(String[] xx) {
+			BigInteger[] xxd = new BigInteger[xx.length];
+			for (int i = 0; i < xx.length; i++) xxd[i] = new BigInteger(xx[i]);
+        		return (BigInteger[])xxd;
+    		}
+		public String[] getFieldSTRING(String[] xx) throws DRNoMatchException {
+			return (String[])xx;
+		}
 	}
 }

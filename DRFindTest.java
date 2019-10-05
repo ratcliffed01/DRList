@@ -55,7 +55,7 @@ public class DRFindTest
 			vos2 = (knapVO)obj[0];
 			System.out.println("DLT - like found "+vos2.col+" "+vos2.price);
 
-			obj = dl1.DRFind("price","Min","").getObjArray();
+			obj = dl1.DRFind("price","min","").getObjArray();
 			vos2 = (knapVO)obj[0];
 			System.out.println("DLT - min found "+vos2.col+" "+vos2.price);
 
@@ -120,6 +120,9 @@ public class DRFindTest
 			String max = dl3.DRFind("","Like","99").getMax("");
 			String min = dl3.DRFind("","Like","99").getMin("");
 			System.out.println("DLT - max99 max="+max+" min="+min);
+
+			String[] res = dl3.DRFind("","Like","99").getFieldValue("");
+			System.out.println("DLT - res99 res0="+res[0]+" resl="+res.length);
 
 			String avg = dl3.DRFind("","Like","99").getAvg("");
 			System.out.println("DLT - avg99 avg="+avg);

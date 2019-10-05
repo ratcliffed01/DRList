@@ -1,6 +1,6 @@
 // to compile do from folder above C:\projects\DRList>javac -Xlint:unchecked -cp ../ DRList.java
 //========================================================================
-//	Author - David Ratcliffe	Version - 1.6	Date - 27/08/2019
+//	Author - David Ratcliffe	Version - 1.7	Date - 05/10/2019
 //
 //	ver1.1	- Add new functions to allow duplicates in BTree and reIndex, plus fix some bugs
 //	ver1.2	- Add DRFind, new search facility and sort on Objects field
@@ -8,6 +8,7 @@
 //	ver1.4	- Add new fncs to DRFindObjVO, getCount, getMax, getMin, getFieldValue, getAvg, getSum and distinct
 //	ver1.5	- Allow for nulls in fields of a VO
 //	ver1.6	- Fix bug with BigDecimal and add search facility for date fields, see DRFind
+//	ver1.7	- Rationalise DRFind by removing all if's for field type and making it faster. No new functionality
 //
 //	programs - DRList.java, DRArrayList.java, DRIndex.java, DRBTree.java, DRCode.java, DRListTBL, DRFind.java, DRFindObjVO.java
 //
@@ -53,7 +54,7 @@
 //					  a String and will be converted to the same field type of the fieldname. If fieldname has 
 //					  asc/dsc delimited by a space then the return object array is sorted ascending/descending
 //					  accordingly.
-//					  if valus contains <Date>: then itassumes the field is of type long and 
+//					  if valus contains <Date>: then it assumes the field is of type long and 
 //					  3 formats are allowed for date processing
 //						format1 - <int><unit> eg 10d means 10days in the future and -10d means 10days in the past
 //							poss units are (s)ec,(m)in,(h)our,(d)ay,(w)eek,(M)onth,(y)ear

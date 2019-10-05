@@ -125,9 +125,13 @@ public class DRFindTest1
 
 			float favg = dl4.DRFind("houseVal",">","195000").DRFindAnd("houseVal","<","195100").DRFindAnd("houseVal asc","Like","8")
 				.getAvg("salary");
+			System.out.println("DLT - favg="+favg);
 			int iavg = dl4.DRFind("houseVal",">","195000").DRFindAnd("houseVal","<","195100").DRFindAnd("houseVal asc","Like","8")
 				.getAvg("houseNo");
-			System.out.println("DLT - favg="+favg+" iavg="+iavg);
+			BigDecimal bdavg = dl4.DRFind("postCode","=","CR 90").getAvg("houseVal");
+			BigDecimal bdmin = dl4.DRFind("postCode","=","CR 90").getMin("houseVal");
+			BigDecimal bdmax = dl4.DRFind("postCode","=","CR 90").getMax("houseVal");
+			System.out.println("DLT - favg="+favg+" iavg="+iavg+" bdavg="+bdavg+" minbd="+bdmin+" maxbd="+bdmax);
 
 			long tot = dl4.DRFind("houseVal",">","195000").DRFindAnd("houseVal","<","195100").DRFindAnd("houseVal asc","Like","8")
 				.getSum("salary","LONG");
@@ -204,7 +208,7 @@ public class DRFindTest1
 			System.out.println("DLT - like99 err dn "+dnm.getMessage());
 		}
 		try{
-			long tot = dl4.DRFind("postCode","=","CR 90").getLong("sum","postCode");
+			long tot = dl4.DRFind("postCode","=","CR 90").getSum("postCode","Long");
 			System.out.println("DLT - glpostcode sum="+tot);
 
 		}catch (DRNoMatchException dnm){
@@ -233,16 +237,20 @@ public class DRFindTest1
 		String dateStr = "2019-02-30 00:00:00";
 		Timestamp ts1 = Timestamp.valueOf("2019-12-31 00:00:00");
 		long t1 = ts1.getTime(); 
-		DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+		DateFormat df = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
 		DRFind drf= new DRFind();
 
 		Timestamp ts = Timestamp.valueOf("2019-08-26 00:00:00");			//mon
 		long baseDate = ts.getTime();
 
 		long todaydow = 7 - ((Math.abs(baseDate - today)/oneday)%7 + 1); 
-
-		System.out.println("TST - 2day="+today+" gt="+ts1.getTime()+" 2date="+df.format(today-oneday*15)+
-				" tdow="+todaydow);
+		long cdt1 = 1473670749000l;
+		Object tobj = new BigDecimal(10.0);
+		String z = tobj.getClass().toString();
+		z = "float";
+		String[] z1 = z.split("\\.");
+		System.out.println("TST - 2day="+today+" gt="+ts1.getTime()+" cdt1="+df.format(cdt1)+
+				" tdow="+(z1[z1.length - 1]));
 		System.out.println("DLT - ti="+(System.currentTimeMillis() - sti)+"ms");
 
 	}
