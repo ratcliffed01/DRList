@@ -1,4 +1,4 @@
-package DRList;
+package projects.DRList.Jar;
 
 import java.io.*;
 import java.net.*;
@@ -7,15 +7,13 @@ import java.text.*;
 import java.sql.Timestamp;
 import java.time.*;
 
-import DRList.DRArrayList;
-import DRList.DRIndex;
-import DRList.DRBTree;
-import DRList.DRCode;
-import DRList.DRListTBL;
-import DRList.DRNoMatchException;
-import DRList.DRFindObjVO;
-import DRList.ProcessTypeVO;
-import DRList.DRFindVO;
+import projects.DRList.Jar.DRArrayList;
+import projects.DRList.Jar.DRCode;
+import projects.DRList.Jar.DRListTBL;
+import projects.DRList.Jar.DRNoMatchException;
+import projects.DRList.Jar.DRFindObjVO;
+import projects.DRList.Jar.ProcessTypeVO;
+import projects.DRList.Jar.DRFindVO;
 
 import java.lang.reflect.*;
 import java.math.*;
@@ -89,8 +87,8 @@ public class DRFind<T>
 		if (fieldName.length() == 0){
 			String[] z = c1.toString().split("\\.");
 			fieldType = z[z.length - 1];
-			if (fieldType.indexOf(validTypes) == -1) fieldType = "";
-			//debug2("st - ft="+fieldType+" "+c1.toString());
+			//debug2("st - ft=["+fieldType+"] c1="+c1.toString());
+			if (validTypes.indexOf(fieldType) == -1) fieldType = "";
 		}else{
 			fieldType = f.getType().toString();
 			String[] z = fieldType.split("\\.");
@@ -228,10 +226,11 @@ public class DRFind<T>
 	{
 		DRFind<T> drf = new DRFind<T>();
 		vo = drf.setFieldType(fieldName, vo, drl);
-		if (vo.getFieldType().equals("")) throw new DRNoMatchException("Valid fieldtype not found");
+		if (vo.getFieldType().equals("")) throw new DRNoMatchException("Valid fieldtype not found for validateField");
 
 		//check all types of fields using invoke which returns a boolean
-		if (!op.equals("Min") && !op.equals("Max")){
+		op = op.toUpperCase();
+		if (!op.equals("MIN") && !op.equals("MAX")){
 			try{
 				String methodName = "isValid"+vo.getFieldType();
 				Class[] cArg = new Class[1]; 
@@ -814,7 +813,8 @@ public class DRFind<T>
 		debug1("sank - xxl="+xx.length+" xsk="+xx[xx.length - 1].sortKey);
 
 		vo = drf.setFieldType(sortName, vo, drl);
-		if (vo.getFieldType().equals("")) throw new DRNoMatchException("Valid fieldtype not found");
+		if (vo.getFieldType().equals("")) throw new DRNoMatchException("Valid fieldtype not found for sortnokey");
+		vo = createMethods(vo);
 
 		final String ft = vo.getFieldType();
 		final String fn = vo.getFieldName();

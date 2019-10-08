@@ -1,5 +1,5 @@
 
-package DRList;
+package projects.DRList.Jar;
 
 import java.io.*;
 import java.net.*;
@@ -13,12 +13,9 @@ import java.lang.reflect.*;
 import java.time.format.*;
 import java.time.temporal.*;
 
-import DRList.DRArrayList;
-import DRList.DRIndex;
-import DRList.DRBTree;
-import DRList.DRCode;
-import DRList.DRListTBL;
-import DRList.DRNoMatchException;
+import projects.DRList.Jar.DRList;
+import projects.DRList.Jar.DRFind;
+import projects.DRList.Jar.DRNoMatchException;
 
 public class DRFindTest1
 {
@@ -93,9 +90,9 @@ public class DRFindTest1
 			nvo = (nameVO)obj[0];
 			System.out.println("DLT - or3>2 found snam="+nvo.surName+" sal="+nvo.salary+" ol="+obj.length);
 
-			DRList<nameVO> ndrl =  dl4.DRFind("surName","=","Number100").DRFindOr("surName","=","Number102").getDRList();
-			nvo = (nameVO)ndrl.DRget(0);
-			System.out.println("DLT - ndrl found snam="+nvo.surName+" sal="+nvo.salary+" siz="+ndrl.DRsize());
+			//DRList<nameVO> ndrl =  dl4.DRFind("surName","=","Number100").DRFindOr("surName","=","Number102").getDRList();
+			//nvo = (nameVO)ndrl.DRget(0);
+			//System.out.println("DLT - ndrl found snam="+nvo.surName+" sal="+nvo.salary+" siz="+ndrl.DRsize());
 
 			List<nameVO> nlst =  dl4.DRFind("surName","=","Number100").DRFindOr("surName","=","Number102").getArrayList();
 			nvo = (nameVO)nlst.get(0);

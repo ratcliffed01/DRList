@@ -1,4 +1,4 @@
-package DRList;
+package projects.DRList.Jar;
 
 import java.io.*;
 import java.net.*;
@@ -7,17 +7,15 @@ import java.text.*;
 import java.sql.Timestamp;
 import java.time.*;
 
-import DRList.DRArrayList;
-import DRList.DRIndex;
-import DRList.DRBTree;
-import DRList.DRCode;
-import DRList.DRListTBL;
-import DRList.DRNoMatchException;
+import projects.DRList.Jar.DRArrayList;
+import projects.DRList.Jar.DRListTBL;
+import projects.DRList.Jar.DRNoMatchException;
+//RFind
 
 import java.lang.reflect.*;
 import java.math.*;
 
-public class DRFindObjVO<T>
+public class DRFindObjVO<T> extends DRFind
 {
 	private T[] obj;
 	private DRListTBL<T> xdrl;
@@ -32,12 +30,12 @@ public class DRFindObjVO<T>
 		this.xdrl = null;
 		return this.obj;
 	}
-	public DRList<T> getDRList(){
-		this.xdrl = null;
-		DRList<T> ndrl = new DRList<T>();
-		for (int i = 0; i < obj.length; i++) ndrl.DRadd(this.obj[i]);
-		return ndrl;
-	}
+	//public DRList<T> getDRList(){
+	//	this.xdrl = null;
+	//	DRList<T> ndrl = new DRList<T>();
+	//	for (int i = 0; i < obj.length; i++) ndrl.DRadd(this.obj[i]);
+	//	return ndrl;
+	//}
 	public List<T> getArrayList(){
 		this.xdrl = null;
 		List<T> nlst = new ArrayList<T>();

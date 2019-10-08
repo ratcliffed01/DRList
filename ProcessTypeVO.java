@@ -1,4 +1,4 @@
-package DRList;
+package projects.DRList.Jar;
 
 import java.io.*;
 import java.net.*;
@@ -6,14 +6,6 @@ import java.util.*;
 import java.text.*;
 import java.sql.Timestamp;
 import java.time.*;
-
-import DRList.DRArrayList;
-import DRList.DRIndex;
-import DRList.DRBTree;
-import DRList.DRCode;
-import DRList.DRListTBL;
-import DRList.DRNoMatchException;
-import DRList.DRFindObjVO;
 
 import java.lang.reflect.*;
 import java.math.*;

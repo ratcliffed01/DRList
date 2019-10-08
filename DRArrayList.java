@@ -1,7 +1,5 @@
-// to compile do from folder above c:\>javac BJSS_TEST\PricingBasket.java
-// to compile do from folder above c:\>java BJSS_TEST.PricingBasket SOUP
 
-package DRList;
+package projects.DRList.Jar;
 
 import java.io.*;
 import java.net.*;

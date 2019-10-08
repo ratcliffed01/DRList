@@ -1,5 +1,5 @@
 
-package DRList;
+package projects.DRList.Jar;
 
 import java.io.*;
 import java.net.*;
@@ -8,12 +8,12 @@ import java.text.*;
 import java.sql.Timestamp;
 import java.time.*;
 
-import DRList.DRArrayList;
-import DRList.DRIndex;
-import DRList.DRBTree;
-import DRList.DRCode;
-import DRList.DRListTBL;
-import DRList.DRNoMatchException;
+import projects.DRList.Jar.DRArrayList;
+import projects.DRList.Jar.DRIndex;
+import projects.DRList.Jar.DRBTree;
+import projects.DRList.Jar.DRCode;
+import projects.DRList.Jar.DRListTBL;
+import projects.DRList.Jar.DRNoMatchException;
 
 public class DRListTest
 {

@@ -1,7 +1,5 @@
-// to compile do from folder above c:\>javac BJSS_TEST\PricingBasket.java
-// to compile do from folder above c:\>java BJSS_TEST.PricingBasket SOUP
 
-package DRList;
+package projects.DRList.Jar;
 
 import java.io.*;
 import java.net.*;
@@ -10,11 +8,9 @@ import java.text.*;
 import java.sql.Timestamp;
 import java.time.*;
 
-import DRList.DRArrayList;
-import DRList.DRIndex;
-import DRList.DRBTree;
-import DRList.DRCode;
-import DRList.DRListTBL;
+import projects.DRList.Jar.DRArrayList;
+import projects.DRList.Jar.DRIndex;
+import projects.DRList.Jar.DRBTree;
 
 public class DRListTBL<T>
 {

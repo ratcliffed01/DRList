@@ -1,6 +1,12 @@
-// to compile do from folder above C:\projects\DRList>javac -Xlint:unchecked -cp ../ DRList.java
+// to compile do from command prompt and put into jar see below :-
+// create subfolder c:/projects/DRList/Jar
+// execute commands in buildDRList.txt, order matters
+// to execute from folder of jar file
+// java -cp DRList.jar projects.DRList.Jar.DRFindTest1
+// java -cp DRList.jar projects.DRList.Jar.DRFindTest
+// java -cp DRList.jar projects.DRList.Jar.DRListTest
 //========================================================================
-//	Author - David Ratcliffe	Version - 1.7	Date - 05/10/2019
+//	Author - David Ratcliffe	Version - 1.8	Date - 08/10/2019
 //
 //	ver1.1	- Add new functions to allow duplicates in BTree and reIndex, plus fix some bugs
 //	ver1.2	- Add DRFind, new search facility and sort on Objects field
@@ -9,8 +15,10 @@
 //	ver1.5	- Allow for nulls in fields of a VO
 //	ver1.6	- Fix bug with BigDecimal and add search facility for date fields, see DRFind
 //	ver1.7	- Rationalise DRFind by removing all if's for field type and making it faster. No new functionality
-//
+//	ver1.8	- change imports to run from jar and build file, removed getDRList as caused compilw issues
+// 
 //	programs - DRList.java, DRArrayList.java, DRIndex.java, DRBTree.java, DRCode.java, DRListTBL, DRFind.java, DRFindObjVO.java
+//			DRFindVO, ProcessTypeVO
 //
 //	This is a variable collection list which uses index to get element number or key to get element from
 //	entered key.
@@ -77,9 +85,6 @@
 //	T[] getObjArray()		- returns the Object array from the DRFindObjVO<T> and is used at the end ie
 // 				Object[] obj = dl4.DRFind("surName","=","Number100").DRFindOr("surName","=","Number101").getObjArray();
 //
-//	DRList<T> getDRList()		- Returns the Object array in the form of DRList<T> and can be accessed via DRList.get(0) ie
-// 				DRList<nameVO> ndrl = dl4.DRFind("surName","=","Number100").DRFindOr("surName","=","Number101").getDRList();
-//
 //	List<T> getArrayList()		- Returns the Object array in the form of ArrayList<T> and can be access via normal List methods
 // 				List<nameVO> nlst = dl4.DRFind("surName","=","Number100").DRFindOr("surName","=","Number101").getArrayList();
 //	T[] DRFindObject(String fieldName, String operator, String value, T[] obj)
@@ -110,7 +115,7 @@
 //					int cnt = dl4.DRFind("houseVal",">","199650").DRFindAnd("houseVal","<","199850").distinct().getCount();
 //	int getCount()			- Returns an integer of the number of elements in an object array
 //					int cnt = dl4.DRFind("postCode","=","CR 90").getCount();
-package DRList;
+package projects.DRList.Jar;
 
 import java.io.*;
 import java.net.*;
@@ -119,13 +124,12 @@ import java.text.*;
 import java.sql.Timestamp;
 import java.time.*;
 
-import DRList.DRArrayList;
-import DRList.DRIndex;
-import DRList.DRBTree;
-import DRList.DRCode;
-import DRList.DRListTBL;
-import DRList.DRNoMatchException;
-import DRList.DRFind;
+import projects.DRList.Jar.DRArrayList;
+import projects.DRList.Jar.DRCode;
+import projects.DRList.Jar.DRListTBL;
+import projects.DRList.Jar.DRNoMatchException;
+import projects.DRList.Jar.DRFind;
+import projects.DRList.Jar.DRFindObjVO;
 
 public class DRList<T>
 {
@@ -229,7 +233,7 @@ public class DRList<T>
 			DRCode<T> drcode = new DRCode<T>();
 			drl = drcode.DRinsert(null,obj,drl);
 		}
-		catch (DRListException de)
+		catch (DRNoMatchException de)
 		{
 			return false;
 		}
@@ -245,7 +249,7 @@ public class DRList<T>
 			DRCode<T> drcode = new DRCode<T>();
 			drl = drcode.DRinsert(sk,obj,drl);
 		}
-		catch (DRListException de)
+		catch (DRNoMatchException de)
 		{
 			return false;
 		}

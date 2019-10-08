@@ -1,5 +1,5 @@
 
-package DRList;
+package projects.DRList.Jar;
 
 import java.io.*;
 import java.net.*;
@@ -8,13 +8,11 @@ import java.text.*;
 import java.sql.Timestamp;
 import java.time.*;
 
-import DRList.DRArrayList;
-import DRList.DRIndex;
-import DRList.DRBTree;
-import DRList.DRCode;
-import DRList.DRFind;
-import DRList.DRListTBL;
-import DRList.DRNoMatchException;
+import projects.DRList.Jar.DRArrayList;
+import projects.DRList.Jar.DRIndex;
+import projects.DRList.Jar.DRBTree;
+import projects.DRList.Jar.DRListTBL;
+import projects.DRList.Jar.DRNoMatchException;
 
 import java.lang.reflect.*;
 
@@ -31,7 +29,7 @@ public class DRCode<T>
     	}
 
 	//================================================
-	public DRListTBL<T> DRinsert(String sk, T obj, DRListTBL<T> drl) throws DRListException{
+	public DRListTBL<T> DRinsert(String sk, T obj, DRListTBL<T> drl) throws DRNoMatchException{
 
 		try
 		{
@@ -96,7 +94,7 @@ public class DRCode<T>
 			debug1("insnk - elapsed="+(sti - System.currentTimeMillis())+"ms");
 		}catch (Exception ex){
 			//debug1("excep - "+ex.printStackTrace());
-			throw new DRListException();
+			throw new DRNoMatchException("DRinsert - "+ex.toString());
 		}
 
 		return drl;
