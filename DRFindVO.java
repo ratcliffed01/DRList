@@ -15,6 +15,11 @@ import java.math.*;
 		private String fieldName;
 		private String fieldType;
 
+		private boolean isArray;
+		private boolean isMethod;
+		private int opCnt;
+		private String opTxt;
+
 		private Field f1;
 		private Method mSetO;
 		private Method mSetV;
@@ -22,6 +27,8 @@ import java.math.*;
 		private Method mGetV;
 		private Method mCompare;
 		private Method mCompareVals;
+		private Method mCompareArray;
+		private Method mGetter;
 
 		private String vOrigString;
 		private String vString;
@@ -37,6 +44,7 @@ import java.math.*;
 		private BigInteger vBigInteger;
 
 		private String oString;
+		private String oArrayString;
 		private int oInteger;
 		private byte oByte;
 		private short oShort;
@@ -47,6 +55,17 @@ import java.math.*;
 		private boolean oBoolean;
 		private BigDecimal oBigDecimal;
 		private BigInteger oBigInteger;
+
+		private long oMinLong	= 0;
+		private long oMaxLong	= 0;
+		private String oMinString = " ";
+		private String oMaxString = " ";
+		private double oMinDouble = 0.0d;
+		private double oMaxDouble = 0.0d;
+		private BigDecimal oMinBigD = BigDecimal.valueOf(0l);
+		private BigDecimal oMaxBigD = BigDecimal.valueOf(0l);
+		private BigInteger oMinBigI = BigInteger.valueOf(0l);
+		private BigInteger oMaxBigI = BigInteger.valueOf(0l);
 
 		String zeroes = "000000000000000000";
 
@@ -65,7 +84,46 @@ import java.math.*;
     		public void debug1(String msg){
 			//System.out.println(msg);
  		}
+    		public void debug2(String msg){
+			System.out.println(msg);
+ 		}
 
+		public void setMGetter(Method x){
+			this.mGetter = x;
+		}
+		public Method getMGetter(){
+			return this.mGetter;
+		}
+		public void setOpTxt(String x){
+			this.opTxt = x;
+		}
+		public String getOpTxt(){
+			return this.opTxt;
+		}
+		public void setOpCnt(int x){
+			this.opCnt = x;
+		}
+		public int getOpCnt(){
+			return this.opCnt;
+		}
+		public void setIsArray(boolean x){
+			this.isArray = x;
+		}
+		public boolean getIsArray(){
+			return this.isArray;
+		}
+		public void setIsMethod(boolean x){
+			this.isMethod = x;
+		}
+		public boolean getIsMethod(){
+			return this.isMethod;
+		}
+		public Method getmCompareArray(){
+			return mCompareArray;
+		}
+		public void setmCompareArray(Method m){
+			mCompareArray = m;
+		}
 		public Method getmCompareVals(){
 			return mCompareVals;
 		}
@@ -164,43 +222,165 @@ import java.math.*;
 			return this.fieldType;
 		}
 
-
 		//======================================================
+		public void setOArrayStr(String x)
+		{
+			oArrayString = x;
+		}
+		public String getOArrayStr()
+		{
+			return oArrayString;
+		}
 		public void setOLong(String x)
 		{
-			oLong = Long.parseLong(x);
+			if (isArray){
+				String[] xx = x.split("!");
+				oLong = Long.parseLong(xx[0]);
+				oMinLong = oLong;
+				oMaxLong = oLong;
+				for (int i = 0; i < xx.length; i++){
+					oLong = Long.parseLong(xx[i]); 
+					if (oMinLong > oLong) oMinLong = oLong;
+					if (oMaxLong < oLong) oMaxLong = oLong;
+				}
+			}else{
+				oLong = Long.parseLong(x);
+			}
 		}
 		public void setOInteger(String x){
-			oInteger = Integer.parseInt(x);
+			if (isArray){
+				String[] xx = x.split("!");
+				oLong = Long.parseLong(xx[0]);
+				oMinLong = oLong;
+				oMaxLong = oLong;
+				for (int i = 0; i < xx.length; i++){
+					oLong = Long.parseLong(xx[i]); 
+					if (oMinLong > oLong) oMinLong = oLong;
+					if (oMaxLong < oLong) oMaxLong = oLong;
+				}
+			}else{
+				oInteger = Integer.parseInt(x);
+			}
 		}
 		public void setOByte(String x){
-			oByte = Byte.parseByte(x);
+			if (isArray){
+				String[] xx = x.split("!");
+				oLong = Long.parseLong(xx[0]);
+				oMinLong = oLong;
+				oMaxLong = oLong;
+				for (int i = 0; i < xx.length; i++){
+					oLong = Long.parseLong(xx[i]); 
+					if (oMinLong > oLong) oMinLong = oLong;
+					if (oMaxLong < oLong) oMaxLong = oLong;
+				}
+			}else{
+				oByte = Byte.parseByte(x);
+			}
 		}
 		public void setOShort(String x){
-			oShort = Short.parseShort(x);
+			if (isArray){
+				String[] xx = x.split("!");
+				oLong = Long.parseLong(xx[0]);
+				oMinLong = oLong;
+				oMaxLong = oLong;
+				for (int i = 0; i < xx.length; i++){
+					oLong = Long.parseLong(xx[i]); 
+					if (oMinLong > oLong) oMinLong = oLong;
+					if (oMaxLong < oLong) oMaxLong = oLong;
+				}
+			}else{
+				oShort = Short.parseShort(x);
+			}
 		}
 		public void setODouble(String x){
-			oDouble = Double.parseDouble(x);
+			if (isArray){
+				String[] xx = x.split("!");
+				oDouble = Double.parseDouble(xx[0]);
+				oMinDouble = oDouble;
+				oMaxDouble = oDouble;
+				for (int i = 0; i < xx.length; i++){ 
+					oDouble = Double.parseDouble(xx[i]);
+					if (oMinDouble > oDouble) oMinDouble = oDouble;
+				 	if (oMaxDouble < oDouble) oMaxDouble = oDouble;
+				}
+			}else{
+				oDouble = Double.parseDouble(x);
+			}
 		}
 		public void setOFloat(String x){
-			oFloat = Float.parseFloat(x);
+			if (isArray){
+				String[] xx = x.split("!");
+				oDouble = Double.parseDouble(xx[0]);
+				oMinDouble = oDouble;
+				oMaxDouble = oDouble;
+				for (int i = 0; i < xx.length; i++){ 
+					oDouble = Double.parseDouble(xx[i]);
+					if (oMinDouble > oDouble) oMinDouble = oDouble;
+				 	if (oMaxDouble < oDouble) oMaxDouble = oDouble;
+				}
+			}else{
+				oFloat = Float.parseFloat(x);
+			}
 		}
 		public void setOCharacter(String x){
-			oChar = x.charAt(0);
+			if (isArray){
+				String[] xx = x.split("!");
+				oMinString = xx[0];
+				oMaxString = oMinString;
+				for (int i = 0; i < xx.length; i++){ 
+					if (oMinString.compareTo(xx[i]) < 0) oMinString = xx[i];
+				 	if (oMaxString.compareTo(xx[i]) > 0) oMaxString = xx[i];
+				}
+			}else{
+				oChar = x.charAt(0);
+			}
 		}
 		public void setOString(String x){
-			oString = x;
-			//debug2("sos - x="+x+" os="+oString);
+			if (isArray){
+				String[] xx = x.split("!");
+				oMinString = xx[0];
+				oMaxString = oMinString;
+				for (int i = 0; i < xx.length; i++){ 
+					if (oMinString.compareTo(xx[i]) < 0) oMinString = xx[i];
+				 	if (oMaxString.compareTo(xx[i]) > 0) oMaxString = xx[i];
+				}
+			}else{
+				oString = x;
+			}
 		}
 		public void setOBoolean(String x){
 			x = x.toUpperCase();
 			if (x.equals("TRUE")) oBoolean = true; else oBoolean = false;
 		}
 		public void setOBigDecimal(String x){
-			oBigDecimal = new BigDecimal(x);
+			if (isArray){
+				String[] xx = x.split("!");
+				oBigDecimal = new BigDecimal(xx[0]);
+				oMinBigD = oBigDecimal;
+				oMaxBigD = oBigDecimal;
+				for (int i = 0; i < xx.length; i++){ 
+					oBigDecimal = new BigDecimal(xx[i]);
+					if (oMinBigD.compareTo(oBigDecimal) < 0) oMinBigD = oBigDecimal;
+				 	if (oMaxBigD.compareTo(oBigDecimal) > 0) oMaxBigD = oBigDecimal;
+				}
+			}else{
+				oBigDecimal = new BigDecimal(x);
+			}
 		}
 		public void setOBigInteger(String x){
-			oBigInteger = new BigInteger(x);
+			if (isArray){
+				String[] xx = x.split("!");
+				oBigInteger = new BigInteger(xx[0]);
+				oMinBigI = oBigInteger;
+				oMaxBigI = oBigInteger;
+				for (int i = 0; i < xx.length; i++){ 
+					oBigInteger = new BigInteger(xx[i]);
+					if (oMinBigI.compareTo(oBigInteger) < 0) oMinBigI = oBigInteger;
+				 	if (oMaxBigI.compareTo(oBigInteger) > 0) oMaxBigI = oBigInteger;
+				}
+			}else{
+				oBigInteger = new BigInteger(x);
+			}
 		}
 		//===========================================================
 		public String getOLong()
@@ -309,6 +489,53 @@ import java.math.*;
 			 return vBigInteger.toString();
 		}
 		//======================================================
+		public int compareArrayLess()
+		{
+			oLong =  oMinLong;
+			oInteger =  (int)oMinLong;
+			oShort =  (short)oMinLong;
+			oByte =  (byte)oMinLong;
+			oString =  oMinString;
+			oChar =  oMinString.charAt(0);
+			oDouble = oMinDouble;
+			oFloat =  (float)oMinDouble;
+			oBigDecimal =  oMinBigD;
+			oBigInteger =  oMinBigI;
+			return 2;
+		}
+		public int compareArrayGreater()
+		{
+			//debug2("cag - start oml="+oMaxLong);
+			try{
+				oLong =  oMaxLong;
+				oInteger =  (int)oMaxLong;
+				oShort =  (short)oMaxLong;
+				oByte =  (byte)oMaxLong;
+				oString =  oMaxString;
+				oChar =  oMaxString.charAt(0);
+				oDouble = oMaxDouble;
+				oFloat =  (float)oMaxDouble;
+				oBigDecimal =  oMaxBigD;
+				oBigInteger =  oMaxBigI;
+			}catch (Exception xx){ debug2("excep - "+xx.toString());return 99; }
+			return 2;
+		}
+		public int compareArrayMin()
+		{
+			return compareArrayLess();
+		}
+		public int compareArrayMax()
+		{
+			return compareArrayGreater();
+		}
+		public int compareArrayEquals()
+		{
+			int greater = 0;
+			String ostr = "!" + oArrayString;
+			String vstr = "!" + vOrigString + "!";
+			if (ostr.indexOf(vstr) > -1) greater = 0; else greater = -1;
+			return greater;
+		}
 		public int compareLong()
 		{
 			int greater = 0;
@@ -453,3 +680,4 @@ import java.math.*;
 		}
 
 	}
+                                                                                                            

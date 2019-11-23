@@ -6,7 +6,7 @@
 // java -cp DRList.jar projects.DRList.Jar.DRFindTest
 // java -cp DRList.jar projects.DRList.Jar.DRListTest
 //========================================================================
-//	Author - David Ratcliffe	Version - 1.8	Date - 08/10/2019
+//	Author - David Ratcliffe	Version - 1.9	Date - 20/11/2019
 //
 //	ver1.1	- Add new functions to allow duplicates in BTree and reIndex, plus fix some bugs
 //	ver1.2	- Add DRFind, new search facility and sort on Objects field
@@ -16,6 +16,7 @@
 //	ver1.6	- Fix bug with BigDecimal and add search facility for date fields, see DRFind
 //	ver1.7	- Rationalise DRFind by removing all if's for field type and making it faster. No new functionality
 //	ver1.8	- change imports to run from jar and build file, removed getDRList as caused compilw issues
+//	ver1.9	- allow drfind to use arrays to search, also allow drfind to use get methods as well as fields
 // 
 //	programs - DRList.java, DRArrayList.java, DRIndex.java, DRBTree.java, DRCode.java, DRListTBL, DRFind.java, DRFindObjVO.java
 //			DRFindVO, ProcessTypeVO
@@ -115,6 +116,11 @@
 //					int cnt = dl4.DRFind("houseVal",">","199650").DRFindAnd("houseVal","<","199850").distinct().getCount();
 //	int getCount()			- Returns an integer of the number of elements in an object array
 //					int cnt = dl4.DRFind("postCode","=","CR 90").getCount();
+//	DRFindObjVO<T> sortAsc(String fieldName) throws DRNoMatchException
+//					Sorts ascending on passed fieldname/method even if the find does not use the fieldname
+//	DRFindObjVO<T> sortDsc(String fieldName) throws DRNoMatchException
+//					Sorts descending on passed fieldname/method even if the find does not use the fieldname
+//obj = dl4.DRFind("purchaseDate",">","<Date>:27-06-2019").DRFindAnd("purchaseDate","<","<Date>:05-07-2019").sortDsc("getHouseNo").getObjArray();
 package projects.DRList.Jar;
 
 import java.io.*;
@@ -130,6 +136,7 @@ import projects.DRList.Jar.DRListTBL;
 import projects.DRList.Jar.DRNoMatchException;
 import projects.DRList.Jar.DRFind;
 import projects.DRList.Jar.DRFindObjVO;
+import projects.DRList.Jar.DRListNoFind;
 
 public class DRList<T>
 {
@@ -140,6 +147,13 @@ public class DRList<T>
     	public static void debug(String msg){
 		//System.out.println(msg);
     	}
+	//================================================
+	@SuppressWarnings("unchecked")
+	public DRList<T> convertToDRList(DRListNoFind<T> drlnf){
+		DRList<T> xdrl = new DRList<T>();
+		xdrl.drl = drlnf.drl;
+		return xdrl;
+	}
 	//================================================
 	public DRFindObjVO<T> DRFind(String fieldName, String operator, String value)
 		throws DRNoMatchException

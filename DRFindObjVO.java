@@ -10,7 +10,7 @@ import java.time.*;
 import projects.DRList.Jar.DRArrayList;
 import projects.DRList.Jar.DRListTBL;
 import projects.DRList.Jar.DRNoMatchException;
-//RFind
+import projects.DRList.Jar.DRListNoFind;
 
 import java.lang.reflect.*;
 import java.math.*;
@@ -30,12 +30,12 @@ public class DRFindObjVO<T> extends DRFind
 		this.xdrl = null;
 		return this.obj;
 	}
-	//public DRList<T> getDRList(){
-	//	this.xdrl = null;
-	//	DRList<T> ndrl = new DRList<T>();
-	//	for (int i = 0; i < obj.length; i++) ndrl.DRadd(this.obj[i]);
-	//	return ndrl;
-	//}
+	public DRListNoFind<T> getDRList(){
+		this.xdrl = null;
+		DRListNoFind<T> ndrl = new DRListNoFind<T>();
+		for (int i = 0; i < obj.length; i++) ndrl.DRadd(this.obj[i]);
+		return ndrl;
+	}
 	public List<T> getArrayList(){
 		this.xdrl = null;
 		List<T> nlst = new ArrayList<T>();
@@ -49,6 +49,16 @@ public class DRFindObjVO<T> extends DRFind
 	{
 		DRFind<T> drf = new DRFind<T>();
 		return drf.distinct(obj);
+	}
+	public DRFindObjVO<T> sortAsc(String fieldName) throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		return drf.sortAsc(obj,fieldName);
+	}
+	public DRFindObjVO<T> sortDsc(String fieldName) throws DRNoMatchException
+	{
+		DRFind<T> drf = new DRFind<T>();
+		return drf.sortDsc(obj,fieldName);
 	}
 	//===============================================================================
 	@SuppressWarnings("unchecked")
@@ -83,6 +93,8 @@ public class DRFindObjVO<T> extends DRFind
 	@SuppressWarnings("unchecked")
 	public <Any> Any[] getFieldValue(String fieldName) throws DRNoMatchException {
 		DRFind<T> drf = new DRFind<T>();
+		DRFindVO vo = new DRFindVO();
+		fieldName = drf.checkForArray(fieldName);
 		String ft = drf.getFieldType(fieldName,this.obj).toUpperCase();
 		String[] xx = drf.getFieldString(fieldName,this.obj);
 		try{
@@ -120,10 +132,10 @@ public class DRFindObjVO<T> extends DRFind
 			throw new DRNoMatchException("Field type is not of type numeric "+fieldName);
 		if (ft.equals("STRING")||ft.equals("CHARACTER")||ft.equals("BOOLEAN")) 
 			throw new DRNoMatchException("Entered Field type is not of type numeric "+fieldName);
-
+		String methodName = "";
 		try{
 			getNumericVO gn = new getNumericVO();
-			String methodName = mName+ft;
+			methodName = mName+ft;
 			Class[] cArg = new Class[2]; 
 			cArg[0] = String.class;
 			cArg[1] = String.class;
@@ -132,7 +144,8 @@ public class DRFindObjVO<T> extends DRFind
 			return (Any)m.invoke(gn,param);
 
 		} catch (IllegalAccessException|NullPointerException|NoSuchMethodException|InvocationTargetException xx){ 
-			throw new DRNoMatchException("Error invmeth finding entered field type "+ft1+" "+xx.toString()+" "+xx.getCause());
+			throw new DRNoMatchException("Error invmeth finding entered field type "+ft1+" mn="+methodName+
+					" fn="+fieldName+" "+xx.toString()+" "+xx.getCause());
 		}
 	}
 	public void setDRL(DRListTBL<T> xdrl){
