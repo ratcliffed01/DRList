@@ -10,7 +10,7 @@ import java.time.*;
 import projects.DRList.Jar.DRArrayList;
 import projects.DRList.Jar.DRListTBL;
 import projects.DRList.Jar.DRNoMatchException;
-import projects.DRList.Jar.DRListNoFind;
+import projects.DRList.Jar.DRCode;
 
 import java.lang.reflect.*;
 import java.math.*;
@@ -18,7 +18,7 @@ import java.math.*;
 public class DRFindObjVO<T> extends DRFind
 {
 	private T[] obj;
-	private DRListTBL<T> xdrl;
+	private DRListTBL<T> xdrl = new DRListTBL<T>();
 
 	public void debug(String msg){
 		System.out.println(msg);
@@ -30,10 +30,10 @@ public class DRFindObjVO<T> extends DRFind
 		this.xdrl = null;
 		return this.obj;
 	}
-	public DRListNoFind<T> getDRList(){
-		this.xdrl = null;
-		DRListNoFind<T> ndrl = new DRListNoFind<T>();
-		for (int i = 0; i < obj.length; i++) ndrl.DRadd(this.obj[i]);
+	public DRListTBL<T> getDRList(){
+		DRCode<T> drc = new DRCode<T>();
+		DRListTBL<T> ndrl = new DRListTBL<T>();
+		for (int i = 0; i < obj.length; i++) ndrl = drc.DRadd(this.obj[i],ndrl);
 		return ndrl;
 	}
 	public List<T> getArrayList(){

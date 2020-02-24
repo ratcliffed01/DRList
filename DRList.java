@@ -136,24 +136,22 @@ import projects.DRList.Jar.DRListTBL;
 import projects.DRList.Jar.DRNoMatchException;
 import projects.DRList.Jar.DRFind;
 import projects.DRList.Jar.DRFindObjVO;
-import projects.DRList.Jar.DRListNoFind;
+//import projects.DRList.Jar.DRListNoFind;
 
 public class DRList<T>
 {
 
 	DRListTBL<T> drl = new DRListTBL<T>();
 
+	public DRList(){
+	}
+	public DRList(DRListTBL<T> ndrl){
+		this.drl = ndrl;
+	}
     	//===================================================================================
     	public static void debug(String msg){
 		//System.out.println(msg);
     	}
-	//================================================
-	@SuppressWarnings("unchecked")
-	public DRList<T> convertToDRList(DRListNoFind<T> drlnf){
-		DRList<T> xdrl = new DRList<T>();
-		xdrl.drl = drlnf.drl;
-		return xdrl;
-	}
 	//================================================
 	public DRFindObjVO<T> DRFind(String fieldName, String operator, String value)
 		throws DRNoMatchException
