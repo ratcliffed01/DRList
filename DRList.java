@@ -6,7 +6,7 @@
 // java -cp DRList.jar projects.DRList.Jar.DRFindTest
 // java -cp DRList.jar projects.DRList.Jar.DRListTest
 //========================================================================
-//	Author - David Ratcliffe	Version - 1.9	Date - 20/11/2019
+//	Author - David Ratcliffe	Version - 1.10	Date - 20/11/2019
 //
 //	ver1.1	- Add new functions to allow duplicates in BTree and reIndex, plus fix some bugs
 //	ver1.2	- Add DRFind, new search facility and sort on Objects field
@@ -17,6 +17,7 @@
 //	ver1.7	- Rationalise DRFind by removing all if's for field type and making it faster. No new functionality
 //	ver1.8	- change imports to run from jar and build file, removed getDRList as caused compilw issues
 //	ver1.9	- allow drfind to use arrays to search, also allow drfind to use get methods as well as fields
+//	ver1.10 - change getDRList() so that it returns DRListTBL and add constructor in DRList with DRListTBL param
 // 
 //	programs - DRList.java, DRArrayList.java, DRIndex.java, DRBTree.java, DRCode.java, DRListTBL, DRFind.java, DRFindObjVO.java
 //			DRFindVO, ProcessTypeVO
