@@ -11,6 +11,7 @@ import projects.DRList.Jar.DRArrayList;
 import projects.DRList.Jar.DRListTBL;
 import projects.DRList.Jar.DRNoMatchException;
 import projects.DRList.Jar.DRCode;
+import projects.DRList.Jar.DRLocalDateTime;
 
 import java.lang.reflect.*;
 import java.math.*;
@@ -206,6 +207,7 @@ public class DRFindObjVO<T> extends DRFind
 			DRFind<T> drf = new DRFind<T>();
 			return (Byte)(byte)drf.getLong(operator, fieldName, obj);	//operator can be avg or sum
 		}
+		//===============================================================
 		public Double getMinDOUBLE(String[] xx){
 			double mind = Double.parseDouble(xx[0]);
 			for (int i = 0; i < xx.length; i++) if (xx[i] != null && Double.parseDouble(xx[i]) < mind) 
@@ -254,6 +256,16 @@ public class DRFindObjVO<T> extends DRFind
 				if (xxb[i] != null && xxb[i].compareTo(minb) < 0) minb = xxb[i];
 			}
           		return (BigInteger)minb;
+		}
+		public LocalDateTime getMinLOCALDATETIME(String[] xx) {
+			LocalDateTime[] xxb = new LocalDateTime[xx.length];
+			DRLocalDateTime dltm = new DRLocalDateTime();
+			LocalDateTime minb = dltm.setDateStr(xx[0]).getDateLDT();
+			for (int i = 0; i < xx.length; i++){
+				xxb[i] = dltm.setDateStr(xx[i]).getDateLDT();
+				if (xxb[i] != null && xxb[i].compareTo(minb) < 0) minb = xxb[i];
+			}
+          		return (LocalDateTime)minb;
 		}
 		public String getMinSTRING(String[] xx) {
 			String mins = xx[0];
@@ -315,6 +327,16 @@ public class DRFindObjVO<T> extends DRFind
 			for (int i = 0; i < xx.length; i++) if (xx[i] != null && xx[i].compareTo(mins) > 0) mins = xx[i];
 			return (String)mins;
 		}
+		public LocalDateTime getMaxLOCALDATETIME(String[] xx) {
+			LocalDateTime[] xxb = new LocalDateTime[xx.length];
+			DRLocalDateTime dltm = new DRLocalDateTime();
+			LocalDateTime minb = dltm.setDateStr(xx[0]).getDateLDT();
+			for (int i = 0; i < xx.length; i++){
+				xxb[i] = dltm.setDateStr(xx[i]).getDateLDT();
+				if (xxb[i] != null && xxb[i].compareTo(minb) > 0) minb = xxb[i];
+			}
+          		return (LocalDateTime)minb;
+		}
 		//============================================================================
 		public Double[] getFieldDOUBLE(String[] xx) {
 			Double[] xxd = new Double[xx.length];
@@ -361,6 +383,14 @@ public class DRFindObjVO<T> extends DRFind
 			for (int i = 0; i < xx.length; i++) xxd[i] = new BigInteger(xx[i]);
         		return (BigInteger[])xxd;
     		}
+		public LocalDateTime[] getFieldLOCALDATETIME(String[] xx) {
+			LocalDateTime[] xxb = new LocalDateTime[xx.length];
+			DRLocalDateTime dltm = new DRLocalDateTime();
+			for (int i = 0; i < xx.length; i++){
+				xxb[i] = dltm.setDateStr(xx[i]).getDateLDT();
+			}
+          		return (LocalDateTime[])xxb;
+		}
 		public String[] getFieldSTRING(String[] xx) throws DRNoMatchException {
 			return (String[])xx;
 		}

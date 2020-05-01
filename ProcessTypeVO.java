@@ -6,6 +6,7 @@ import java.util.*;
 import java.text.*;
 import java.sql.Timestamp;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 
 import java.lang.reflect.*;
 import java.math.*;
@@ -105,8 +106,24 @@ import java.math.*;
 			return true;
 		}
 		public Boolean isValidCharacter(String value){
+			if (value.length() > 1) return false;
 			return true;
 		}
+   		public boolean isValidLocalDateTime(String dateStr){
+
+			String dateCheck = dateStr;
+        		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+        		try {
+        	    		LocalDateTime ldt = LocalDateTime.parse(dateCheck, formatter);
+	    			int domCheck = Integer.parseInt(dateCheck.substring(0,2));
+				LocalDate ld = ldt.toLocalDate();
+	    			int domLocal = ld.getDayOfMonth();
+	    			if (domCheck != domLocal) return false;
+				return true;
+        		} catch ( DateTimeException ex ) {
+				return false;
+        		}
+   		}
 		//============================================================
 
 	}

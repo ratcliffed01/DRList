@@ -9,11 +9,15 @@ import java.time.*;
 
 import java.lang.reflect.*;
 import java.math.*;
+import java.time.format.DateTimeFormatter;
+
+import projects.DRList.Jar.DRLocalDateTime;
 
 	public class DRFindVO
 	{
 		private String fieldName;
 		private String fieldType;
+		private String origFieldType;
 
 		private boolean isArray;
 		private boolean isMethod;
@@ -42,6 +46,9 @@ import java.math.*;
 		private boolean vBoolean;
 		private BigDecimal vBigDecimal;
 		private BigInteger vBigInteger;
+		private LocalDateTime vLDT;
+		private LocalDate vLD;
+		private Date vDate;
 
 		private String oString;
 		private String oArrayString;
@@ -55,6 +62,9 @@ import java.math.*;
 		private boolean oBoolean;
 		private BigDecimal oBigDecimal;
 		private BigInteger oBigInteger;
+		private LocalDateTime oLDT;
+		private LocalDate oLD;
+		private Date oDate;
 
 		private long oMinLong	= 0;
 		private long oMaxLong	= 0;
@@ -66,6 +76,12 @@ import java.math.*;
 		private BigDecimal oMaxBigD = BigDecimal.valueOf(0l);
 		private BigInteger oMinBigI = BigInteger.valueOf(0l);
 		private BigInteger oMaxBigI = BigInteger.valueOf(0l);
+		private LocalDateTime oMinLDT = oLDT.now();
+		private LocalDateTime oMaxLDT = oLDT.now();
+		private LocalDate oMinLD = oLD.now();
+		private LocalDate oMaxLD = oLD.now();
+		private Date oMinDate = new Date();
+		private Date oMaxDate = new Date();
 
 		String zeroes = "000000000000000000";
 
@@ -75,7 +91,8 @@ import java.math.*;
 		private char dateInterval;
 		private int dateIntervalNum;
 		private String dateStr;
-		long startDate;
+		private long startDate;
+		private LocalDateTime startLDT;
 
     		//===================================================================================
     		public void debug(String msg){
@@ -173,6 +190,12 @@ import java.math.*;
 		public long getStartDate(){
 			return this.startDate;
 		}
+		public void setStartLDT(LocalDateTime x){
+			this.startLDT = x;
+		}
+		public LocalDateTime getStartLDT(){
+			return this.startLDT;
+		}
 		public void setDateStr(String x){
 			this.dateStr = x;
 		}
@@ -221,7 +244,12 @@ import java.math.*;
 		public String getFieldType(){
 			return this.fieldType;
 		}
-
+		public void setOrigFieldType(String x){
+			this.origFieldType = x;
+		}
+		public String getOrigFieldType(){
+			return this.origFieldType;
+		}
 		//======================================================
 		public void setOArrayStr(String x)
 		{
@@ -231,6 +259,7 @@ import java.math.*;
 		{
 			return oArrayString;
 		}
+		//===================================================================================
 		public void setOLong(String x)
 		{
 			if (isArray){
@@ -382,7 +411,58 @@ import java.math.*;
 				oBigInteger = new BigInteger(x);
 			}
 		}
-		//===========================================================
+		public void setOLocalDateTime(String x){
+			DRLocalDateTime dldt = new DRLocalDateTime();
+			if (isArray){
+				String[] xx = x.split("!");
+				oLDT = dldt.setDateStr(xx[0]).getDateLDT();
+				oMinLDT = oLDT;
+				oMaxLDT = oLDT;
+				for (int i = 0; i < xx.length; i++){ 
+					oLDT = dldt.setDateStr(xx[i]).getDateLDT();
+					if (oMinLDT.compareTo(oLDT) < 0) oMinLDT = oLDT;
+				 	if (oMaxLDT.compareTo(oLDT) > 0) oMaxLDT = oLDT;
+				}
+			}else{
+				//debug2("soldt - x="+x);
+				oLDT = dldt.setDateStr(x).getDateLDT();
+			}
+		}
+		public void setOLocalDate(String x){
+			DRLocalDateTime dldt = new DRLocalDateTime();
+			if (isArray){
+				String[] xx = x.split("!");
+				oLD = dldt.setLDString(xx[0]).getDateLocalDate();
+				oMinLD = oLD;
+				oMaxLD = oLD;
+				for (int i = 0; i < xx.length; i++){ 
+					oLD = dldt.setLDString(xx[i]).getDateLocalDate();
+					if (oMinLD.compareTo(oLD) < 0) oMinLD = oLD;
+				 	if (oMaxLD.compareTo(oLD) > 0) oMaxLD = oLD;
+				}
+			}else{
+				//debug2("soldt - x="+x);
+				oLD = dldt.setLDString(x).getDateLocalDate();
+			}
+		}
+		public void setODate(String x){
+			DRLocalDateTime dldt = new DRLocalDateTime();
+			if (isArray){
+				String[] xx = x.split("!");
+				oDate = dldt.setDateStr(xx[0]).toDateDate();
+				oMinDate = oDate;
+				oMaxDate = oDate;
+				for (int i = 0; i < xx.length; i++){ 
+					oDate = dldt.setDateStr(xx[i]).toDateDate();
+					if (oMinDate.compareTo(oDate) < 0) oMinDate = oDate;
+				 	if (oMaxDate.compareTo(oDate) > 0) oMaxDate = oDate;
+				}
+			}else{
+				//debug2("soldt - x="+x);
+				oDate = dldt.setDateStr(x).toDateDate();
+			}
+		}
+		//=====================================================================================
 		public String getOLong()
 		{
 			return Long.toString(oLong);
@@ -416,6 +496,18 @@ import java.math.*;
 		}
 		public String getOBigInteger(){
 			 return oBigInteger.toString();
+		}
+		public String getOLocalDateTime(){
+			DRLocalDateTime ldt = new DRLocalDateTime();
+			return ldt.setDateLDT(this.oLDT).toStringDate();
+		}
+		public String getOLocalDate(){
+			DRLocalDateTime ldt = new DRLocalDateTime();
+			return ldt.setDateLocalDate(this.oLD).toStringLocalDate();
+		}
+		public String getODate(){
+			DRLocalDateTime ldt = new DRLocalDateTime();
+			return ldt.setDateDate(this.oDate).toStringDate();
 		}
 		//======================================================
 		public void setVLong(String x)
@@ -453,6 +545,21 @@ import java.math.*;
 		public void setVBigInteger(String x){
 			vBigInteger = new BigInteger(x);
 		}
+		public void setVLocalDateTime(String x){
+			DRLocalDateTime dlt = new DRLocalDateTime();
+			vLDT = dlt.setDateStr(x).getDateLDT();
+			//debug2("setvldt vldt = "+vLDT+" x="+x);
+		}
+		public void setVLocalDate(String x){
+			DRLocalDateTime dlt = new DRLocalDateTime();
+			vLD = dlt.setLDString(x).getDateLocalDate();
+			//debug2("setvld vld = "+vLD+" x="+x);
+		}
+		public void setVDate(String x){
+			DRLocalDateTime dlt = new DRLocalDateTime();
+			vDate = dlt.setDateStr(x).toDateDate();
+			//debug2("setvldt vldt = "+vLDT+" x="+x);
+		}
 		//===========================================================
 		public String getVLong()
 		{
@@ -488,7 +595,20 @@ import java.math.*;
 		public String getVBigInteger(){
 			 return vBigInteger.toString();
 		}
-		//======================================================
+		public String getVLocalDateTime(){
+			DRLocalDateTime dlt = new DRLocalDateTime();
+			return dlt.setDateLDT(vLDT).toStringDate();
+		}
+		public String getVLocalDate(){
+			DRLocalDateTime dlt = new DRLocalDateTime();
+			return dlt.setDateLocalDate(vLD).toStringLocalDate();
+		}
+		public String getVDate(){
+			DRLocalDateTime dlt = new DRLocalDateTime();
+			return dlt.setDateDate(vDate).toStringDate();
+		}
+		//======================================================	
+
 		public int compareArrayLess()
 		{
 			oLong =  oMinLong;
@@ -658,6 +778,48 @@ import java.math.*;
 			try
 			{
 				x1 = vBigInteger.compareTo(oBigInteger);
+			}catch (NullPointerException npe){
+				greater = 99;				//this null rec will be ignored
+			}
+			if (x1 == 0) greater = 0;			//V > O
+			if (x1 > 0) greater = -1;
+			if (x1 < 0) greater = 1;
+			return greater;
+		}
+		public int compareLocalDateTime(){
+			int greater = 0;
+			int x1 = 99;
+			try
+			{
+				x1 = vLDT.compareTo(oLDT);
+			}catch (NullPointerException npe){
+				greater = 99;				//this null rec will be ignored
+			}
+			if (x1 == 0) greater = 0;			//V > O
+			if (x1 > 0) greater = -1;
+			if (x1 < 0) greater = 1;
+			return greater;
+		}
+		public int compareLocalDate(){
+			int greater = 0;
+			int x1 = 99;
+			try
+			{
+				x1 = vLD.compareTo(oLD);
+			}catch (NullPointerException npe){
+				greater = 99;				//this null rec will be ignored
+			}
+			if (x1 == 0) greater = 0;			//V > O
+			if (x1 > 0) greater = -1;
+			if (x1 < 0) greater = 1;
+			return greater;
+		}
+		public int compareDate(){
+			int greater = 0;
+			int x1 = 99;
+			try
+			{
+				x1 = vDate.compareTo(oDate);
 			}catch (NullPointerException npe){
 				greater = 99;				//this null rec will be ignored
 			}

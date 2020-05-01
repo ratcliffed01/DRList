@@ -2,8 +2,6 @@ javac -cp ../;DRList.jar DRBTree.java
 jar cvf DRList.jar c:/projects/DRList/Jar/DRBTree.class
 javac -cp ../;DRList.jar DRArrayList.java
 jar uvf DRList.jar c:/projects/DRList/Jar/DRArrayList.class
-javac -cp ../;DRList.jar DRFindVO.java
-jar uvf DRList.jar c:/projects/DRList/Jar/DRFindVO.class
 javac -cp ../;DRList.jar ProcessTypeVO.java
 jar uvf DRList.jar c:/projects/DRList/Jar/ProcessTypeVO.class
 javac -cp ../;DRList.jar DRIndex.java
@@ -12,6 +10,10 @@ javac -cp ../;DRList.jar DRListTBL.java
 jar uvf DRList.jar c:/projects/DRList/Jar/DRListTBL.class
 javac -cp ../;DRList.jar DRNoMatchException.java
 jar uvf DRList.jar c:/projects/DRList/Jar/DRNoMatchException.class
+javac -cp ../;DRList.jar DRLocalDateTime.java
+jar uvf DRList.jar c:/projects/DRList/Jar/DRLocalDateTime.class
+javac -cp ../;DRList.jar DRFindVO.java
+jar uvf DRList.jar c:/projects/DRList/Jar/DRFindVO.class
 javac -cp ../;DRList.jar DRCode.java
 jar uvf DRList.jar c:/projects/DRList/Jar/DRCode.class
 jar uvf DRList.jar c:/projects/DRList/Jar/DRCode$1.class
@@ -34,5 +36,8 @@ jar uvf DRList.jar c:/projects/DRList/Jar/DRFindTest$nameVO.class
 javac -cp ../;DRList.jar DRListTest.java
 jar uvf DRList.jar c:/projects/DRList/Jar/DRListTest.class
 jar uvf DRList.jar c:/projects/DRList/Jar/DRListTest$knapVO.class
-
+javac -cp ../;DRList.jar DRFindTest2.java
+jar uvf DRList.jar c:/projects/DRList/Jar/DRFindTest2.class
+jar uvf DRList.jar c:/projects/DRList/Jar/DRFindTest2$2napVO.class
+jar uvf DRList.jar c:/projects/DRList/Jar/DRFindTest2$nameVO.class
 

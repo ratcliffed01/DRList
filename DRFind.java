@@ -14,28 +14,11 @@ import projects.DRList.Jar.DRNoMatchException;
 import projects.DRList.Jar.DRFindObjVO;
 import projects.DRList.Jar.ProcessTypeVO;
 import projects.DRList.Jar.DRFindVO;
-
 import java.lang.reflect.*;
 import java.math.*;
 
 public class DRFind<T>
 {
-	long today = System.currentTimeMillis();
-	long oneday = 24 * 3600 * 1000;
-	long onehour = 3600 * 1000;
-	long onemin = 60 * 1000;
-	char[] di = {'s','m','h','d','w','M','y'};	//sec,min,hour,day,week,month,year
-	long[] din = {1000, onemin, onehour, oneday, oneday * 7, oneday * 31, oneday * 365};
-	String[] dow = {"Mon","Tue","Wed","Thu","Fri","Sat","Sun"};
-
-	byte[] md = {31,28,31,30,31,30,31,31,30,31,30,31};
-	byte[] lmd = {31,29,31,30,31,30,31,31,30,31,30,31};
-
-	Timestamp ts = Timestamp.valueOf("2019-08-19 00:00:00");			//mon
-	long baseDate = ts.getTime();
-
-	long todaydow = ((Math.abs(baseDate - today)/oneday)%7); 
-
 	int arrayNum = -1;
 
     	//===================================================================================
@@ -140,134 +123,78 @@ public class DRFind<T>
 		vo.setFieldName(fieldName);
 		return vo;
 	}
-	//=======================================================
-	public boolean validDayMonth(String dateStr)
-	{
-		try
-		{
-			String[] x = dateStr.split(" ");
-			String[] y = x[0].split("-");
-			byte dd = Byte.parseByte(y[0]);
-			byte mm = Byte.parseByte(y[1]);
-			int yy = Integer.parseInt(y[2]);
 
-			//2004 was leap year use that as the base, year 2000 was not a leap year
-			byte[] dom = (Math.abs(2004 - yy) % 4 == 0 && yy%100 != 0) ? lmd : md;			//leapyear
-			return ((mm > 0 || mm < 13) || (dd > 0 || dd <= dom[mm - 1]));
 
-		}catch (Exception e){
-			//System.out.println("vdate excep - ["+dateStr+"]");
-			return false;
-		}
-	}
-	//=======================================================
-	public boolean validTime(String dateStr)
-	{
-		try
-		{
-			String[] x = dateStr.split(" ");
-			String[] y = x[0].split("-");
-			byte hh = 0;
-			byte mi = 0;
-			byte ss1 = 0;
-
-			if (x.length > 1){
-				y = x[1].split(":");
-				hh = Byte.parseByte(y[0]);
-				mi = Byte.parseByte(y[1]);
-				int pos = (y[2].indexOf(".") == -1) ? y[2].length() : y[2].indexOf(".");
-				ss1 = Byte.parseByte(y[2].substring(0,pos));
-			}
-
-			return (hh >= 0 || hh < 24 || mi >= 0 || mi < 60 || ss1 >= 0 || ss1 < 60);
-
-		}catch (Exception e){
-			//System.out.println("vdate excep - ["+dateStr+"]");
-			return false;
-		}
-	}
-	//=======================================================
-	public boolean isValidDate(String dateStr)
-	{
-		return (validDayMonth(dateStr) && validTime(dateStr));
-	}
 	//================================================
 	public DRFindVO validateDate(String fieldName, String value, DRFindVO vo, DRListTBL<T> drl, String op) 
 		throws DRNoMatchException
 	{
-		DRFind<T> drf = new DRFind<T>();
-		vo = drf.setFieldType(fieldName, vo, drl);
+		DRLocalDateTime dldt = new DRLocalDateTime();
+		vo = this.setFieldType(fieldName, vo, drl);
 
-		if (!vo.getFieldType().equals("Long")) throw new DRNoMatchException("Valid date fieldtype not found");
+		if (!dldt.validFieldType(vo.getFieldType())) throw new DRNoMatchException("Valid date fieldtype not found");
+
+		vo.setOrigFieldType("");
 
 		//the field type is long now we need to check that the format is correct date format or an integer
 		vo.setDateInterval(' ');
-		for (char x:di) if (x == value.charAt(value.length() -  1)) vo.setDateInterval(x);
-		byte one = 1;								// format is dd-mm-yyyy
-		if (vo.getDateInterval() == ' ') one = 0;				//format is 10d
-		String dateStr = value.substring(value.indexOf("<Date>:")+7, value.length() - one);
-		if (vo.getDateInterval() == ' '){
-			boolean dowFound = false;
-			int dowi = 0;
-			for (int i = 0; i < dow.length; i++) {
-				if (dateStr.indexOf(dow[i]) > -1){ 
-					dowFound = true;
-					dowi = i;			//0=mon...6=sun
-					break;
-				}
-			} 
-			if (dowFound){
-				int weekno = 0;
+		String dateStr = "";
+		if (dldt.checkTimeUnits(value.substring(value.length()-1))){		//last char is d,w,h,m,y etc 	
+			//format <Date>:10d
+			vo.setDateIntervalNum(Integer.parseInt(value.substring(value.indexOf("<Date>:")+7,value.length()-1)));
+			dateStr = value.substring(value.indexOf("<Date>:")+7);
+			if (vo.getFieldType().equals("LocalDate")) dateStr = dldt.getNewDate(dateStr).toStringLocalDate();
+			else dateStr = dldt.getNewDate(dateStr).toStringDate();
+			vo.setDateStr(dateStr);
+			//debug2("drf - dstr="+dateStr+" int="+vo.getDateIntervalNum()+" val="+value);
+		}else{ 								
+			dateStr = value.substring(value.indexOf("<Date>:")+7, value.length());
+			String dow = "";
+			int weekno = 0;
+			if (dateStr.length() > 2) dow = dateStr.substring(0,3);
+			if (dldt.checkDayOfWeek(dow)){				//format Mon-19
 				try{
-					if (dateStr.length() == 3) weekno = 0;
-					else weekno = Integer.parseInt(dateStr.substring(3,dateStr.length()));
-				}catch (Exception e){throw new DRNoMatchException(e.getMessage()+" Invalid number with day of week - ["+
-					dateStr+"]");}
-				long dowdate = (today + (dowi - todaydow)*oneday) + weekno * oneday * 7;	//dow next week week
-				DateFormat df = new SimpleDateFormat("dd-MM-yyyy 00:00:00");
-				dateStr = df.format(dowdate);
+					if (dateStr.length() > 3) weekno = Integer.parseInt(dateStr.substring(3,dateStr.length()));
+				}catch (Exception e){
+					throw new DRNoMatchException(e.getMessage()+" Invalid number with day of week - ["+dateStr+"]");
+				}
+				if (vo.getFieldType().equals("LocalDate")) 
+					dateStr = dldt.getNewDate(dldt.getNewDayNum(dow,weekno).getDayDiff()+"d").toStringLocalDate();
+				else dateStr = dldt.getNewDate(dldt.getNewDayNum(dow,weekno).getDayDiff()+"d").toStringDate();
 				vo.setDateStr(dateStr);
-			}else{
+			}else{							//format dd-mm-yyyy hh:mm:ss
 				vo.setDateIntervalNum(0);
-				if (dateStr.indexOf(":") == -1) dateStr = dateStr + " 00:00:00";
-				if (isValidDate(dateStr)) vo.setDateStr(dateStr); else throw new DRNoMatchException("Date is not valid");
+				if (vo.getFieldType().equals("LocalDate") && dateStr.indexOf(":") > -1){ 
+					throw new DRNoMatchException("LocalDate contains time "+dateStr);
+				}
+				if (!vo.getFieldType().equals("LocalDate") && dateStr.indexOf(":") == -1) dateStr = dateStr + " 00:00:00";
+				vo.setDateStr(dateStr); 
 			}
-		}else{ 
-			vo.setDateIntervalNum(Integer.parseInt(dateStr));
 		}
-		vo = drf.setStartDate(vo);
-
-		drf.createMethods(vo);
-		setValue(vo.getStartDate() + "",vo); 
-		vo.setVOrigString(vo.getStartDate() + "");
-
-		//DateFormat df = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
-		//debug2("vald - ds="+dateStr+" eov="+value.charAt(value.length() - 1)+" di="+vo.getDateInterval()+" val="+value+
-		//	" sd="+df.format(vo.getStartDate()));
-		return vo;
-	}
-	//================================================
-	public DRFindVO setStartDate(DRFindVO vo) 
-	{
-		if (vo.getDateIntervalNum() == 0){
-			String[] x = vo.getDateStr().split(" ");
-			String[] y = x[0].split("-");
-			//debug2("sd - ds="+vo.getDateStr());
-			Timestamp ts1 = Timestamp.valueOf(y[2]+"-"+y[1]+"-"+y[0]+" "+"00:00:00");	//format "2019-12-31 00:00:00"
-			vo.setStartDate(ts1.getTime());
+		this.createMethods(vo);
+		if (dldt.validateDateTime(vo.getDateStr())){
+			if (vo.getFieldType().equals("Long")){
+				vo.setStartDate(dldt.setDateStr(vo.getDateStr()).toMillisec());
+				setValue(vo.getStartDate() + "",vo); 
+				vo.setVOrigString(vo.getStartDate() + "");
+			}else{
+				vo.setStartLDT(dldt.setDateStr(vo.getDateStr()).getDateLDT());
+				setValue(vo.getDateStr(),vo); 
+				vo.setVOrigString(vo.getDateStr());
+			}
 		}else{
-			for (int i = 0; i < di.length; i++) 
-				if (vo.getDateInterval() == di[i]) vo.setStartDate(today + (vo.getDateIntervalNum() * din[i]));
+			throw new DRNoMatchException("Date is not valid "+vo.getDateStr());
 		}
+
 		return vo;
 	}
 	//================================================
 	public DRFindVO validateField(String fieldName, String value, DRFindVO vo, DRListTBL<T> drl, String op) 
 		throws DRNoMatchException
 	{
-		DRFind<T> drf = new DRFind<T>();
-		vo = drf.setFieldType(fieldName, vo, drl);
+		vo = this.setFieldType(fieldName, vo, drl);
 		if (vo.getFieldType().equals("")) throw new DRNoMatchException("Valid fieldtype not found for validateField");
+		vo.setOrigFieldType("");
 
 		//check all types of fields using invoke which returns a boolean
 		op = op.toUpperCase();
@@ -289,9 +216,13 @@ public class DRFind<T>
 		}
 		vo = createMethods(vo);
 
-		setValue(value,vo);						
-		vo.setVOrigString(value);						
-		debug1("vf - end val="+getValue(vo)+" ft="+vo.getFieldType());
+		//debug2("vf - b4sv ft="+vo.getFieldType()+" fn="+vo.getFieldName());
+
+		if (!value.equals("SORT")){
+			setValue(value,vo);						
+			vo.setVOrigString(value);						
+		}
+		//debug2("vf - end ft="+vo.getFieldType());
 		return vo;
 	}
 	//================================================
@@ -331,33 +262,31 @@ public class DRFind<T>
 	public T[] DRFindObj(String fieldName, String operator, String value, DRListTBL<T> drl) 
 		throws DRNoMatchException
 	{
-		DRFind<T> drf = new DRFind<T>();
 		DRFindVO vo = new DRFindVO();
 
 		if (drl.fdl.obj == null) throw new DRNoMatchException("ListTbl is null");
 
 		if (value.indexOf("<Date>:") > -1)
-			vo = drf.validateDate(fieldName, value, vo, drl, operator);
+			vo = this.validateDate(fieldName, value, vo, drl, operator);
 		else
-			vo = drf.validateField(fieldName, value, vo, drl, operator);
-		T[] obj = drf.DRFindInvoke(drf.getOpCnt(operator), vo, drl);
+			vo = this.validateField(fieldName, value, vo, drl, operator);
+		T[] obj = this.DRFindInvoke(this.getOpCnt(operator), vo, drl);
 		return obj;
 	}
 	//================================================
 	public DRFindObjVO<T> DRFind(String fieldName, String operator, String value, DRListTBL<T> drl) 
 		throws DRNoMatchException
 	{
-		DRFind<T> drf = new DRFind<T>();
 		DRFindVO vo = new DRFindVO();
 
 		if (drl.fdl.obj == null) throw new DRNoMatchException("ListTbl is null");
 
 		//check if date is being validated, this will have <Date>: in the value field
 		if (value.indexOf("<Date>:") > -1)
-			vo = drf.validateDate(fieldName, value, vo, drl, operator);
+			vo = this.validateDate(fieldName, value, vo, drl, operator);
 		else
-			vo = drf.validateField(fieldName, value, vo, drl, operator);
-		T[] obj = drf.DRFindInvoke(drf.getOpCnt(operator), vo, drl);
+			vo = this.validateField(fieldName, value, vo, drl, operator);
+		T[] obj = this.DRFindInvoke(this.getOpCnt(operator), vo, drl);
 
 		DRFindObjVO<T> avo = new DRFindObjVO<T>();
 		avo.setObjArray(obj);
@@ -368,29 +297,25 @@ public class DRFind<T>
 	public DRFindObjVO<T> FindAnd(String fieldName, String operator, String value, T[] obj) 
 		throws DRNoMatchException
 	{
-		DRFind<T> drf = new DRFind<T>();
 		DRCode<T> drc = new DRCode<T>();
 		DRListTBL<T> ndrl = new DRListTBL<T>();
 		DRFindVO vo = new DRFindVO();
 
-		for (int i = 0; i < obj.length; i++)
-			drc.DRadd(obj[i],ndrl);
+		for (int i = 0; i < obj.length; i++) drc.DRadd(obj[i],ndrl);
 
-		DRFindObjVO<T> avo = drf.DRFind(fieldName, operator, value, ndrl);
-		return avo;
+		return this.DRFind(fieldName, operator, value, ndrl);
 	}
 	//================================================
 	public DRFindObjVO<T> FindOr(String fieldName, String operator, String value, DRListTBL<T> drl, T[] obj) 
 		throws DRNoMatchException
 	{
-		DRFind<T> drf = new DRFind<T>();
 		DRCode<T> drc = new DRCode<T>();
 		DRFindObjVO<T> avo = new DRFindObjVO<T>();
 
 		if (drl.fdl.obj == null) throw new DRNoMatchException("ListTbl is null");
 
-		T[] obj1 = drf.DRFindObj(fieldName, operator, value, drl);
-		T[] obj2 = drf.combineObjs(obj,obj1);
+		T[] obj1 = this.DRFindObj(fieldName, operator, value, drl);
+		T[] obj2 = this.combineObjs(obj,obj1);
 		avo.setObjArray(obj2);
 		avo.setDRL(drl);
 		return avo;
@@ -399,7 +324,6 @@ public class DRFind<T>
 	public DRFindObjVO<T> FindMinus(String fieldName, String operator, String value, T[] obj) 
 		throws DRNoMatchException
 	{
-		DRFind<T> drf = new DRFind<T>();
 		DRCode<T> drc = new DRCode<T>();
 		DRListTBL<T> ndrl = new DRListTBL<T>();
 		DRFindVO vo = new DRFindVO();
@@ -407,9 +331,9 @@ public class DRFind<T>
 		for (int i = 0; i < obj.length; i++)
 			drc.DRadd(obj[i],ndrl);
 
-		T[] obj1 = drf.DRFindObj(fieldName, operator, value, ndrl);
+		T[] obj1 = this.DRFindObj(fieldName, operator, value, ndrl);
 
-		T[] obj2 = drf.minusObjs(obj,obj1);
+		T[] obj2 = this.minusObjs(obj,obj1);
 		DRFindObjVO<T> avo = new DRFindObjVO<T>();
 
 		avo.setObjArray(obj2);
@@ -912,7 +836,6 @@ public class DRFind<T>
 	//==============================================================
 	public DRFindObjVO<T> sortAsc(T[] obj,String fieldName) throws DRNoMatchException
 	{
-		DRFind<T> drf = new DRFind<T>();
 		DRFindVO vo = new DRFindVO();
 		DRListTBL<T> ndrl = new DRListTBL<T>();
 		DRCode<T> drc = new DRCode<T>();
@@ -922,7 +845,7 @@ public class DRFind<T>
 		for (int i = 0; i < obj.length; i++) drc.DRadd(obj[i],ndrl);
 
 		//as value is null use min operator
-		vo = drf.validateField(fieldName, "", vo, ndrl, "min");
+		vo = this.validateField(fieldName, "SORT", vo, ndrl, "min");
 		vo.setSortAsc(true);
 		T[] nobj = sortObjs(obj,vo);
 		DRFindObjVO<T> avo = new DRFindObjVO<T>();
@@ -933,7 +856,6 @@ public class DRFind<T>
 	//==============================================================
 	public DRFindObjVO<T> sortDsc(T[] obj,String fieldName) throws DRNoMatchException
 	{
-		DRFind<T> drf = new DRFind<T>();
 		DRFindVO vo = new DRFindVO();
 		DRListTBL<T> ndrl = new DRListTBL<T>();
 		DRCode<T> drc = new DRCode<T>();
@@ -942,9 +864,10 @@ public class DRFind<T>
 
 		for (int i = 0; i < obj.length; i++) drc.DRadd(obj[i],ndrl);
 
-		//as value is null use min operator
-		vo = drf.validateField(fieldName, "", vo, ndrl, "min");
+		//as hisis null use min operator
+		vo = this.validateField(fieldName, "SORT", vo, ndrl, "min");
 		vo.setSortDsc(true);
+
 		T[] nobj = sortObjs(obj,vo);
 		DRFindObjVO<T> avo = new DRFindObjVO<T>();
 		avo.setObjArray(nobj);
@@ -954,6 +877,8 @@ public class DRFind<T>
 	//==============================================================
 	public T[] sortObjs(T[] objs, DRFindVO vo) throws DRNoMatchException
 	{
+
+		//debug2("sob = asc="+vo.getSortAsc()+" dsc="+vo.getSortDsc()+" ol="+objs.length);
 
 		final String ft = vo.getFieldType();
 		final String fn = vo.getFieldName();
@@ -972,8 +897,6 @@ public class DRFind<T>
 		if (vo.getSortAsc()) ascv = -1;
 		if (vo.getSortDsc()) ascv = 1;
 		final int asc = ascv;
-
-		debug1("sob = asc="+vo.getSortAsc()+" dsc="+vo.getSortDsc());
 
 		Arrays.sort(objs, new Comparator<T>() {
 			@Override
@@ -995,7 +918,6 @@ public class DRFind<T>
 		int greater = 0;
 		try
 		{
-
 			setObjValue(obj1,fvo);
 			setValue((String)getObjValue(fvo),fvo);
 			setObjValue(obj2,fvo);
@@ -1123,7 +1045,21 @@ public class DRFind<T>
 					vo.setOArrayStr(str);
 					//debug2("sov - str="+str+" len="+Array.getLength(strA));
 				}else{
-					str = vo.getFieldF1().get(x).toString();
+					DRLocalDateTime dldt = new DRLocalDateTime();
+					if (vo.getFieldType().equals("LocalDateTime")){
+						//this halves the execution time 
+						LocalDateTime ldt = (LocalDateTime)vo.getFieldF1().get(x);
+						str = dldt.setDateLDT(ldt).toStringDate();
+					}else if (vo.getFieldType().equals("LocalDate")){
+						LocalDate ld = ((LocalDate)vo.getFieldF1().get(x));
+						str = dldt.setDateLocalDate(ld).toStringLocalDate();
+						//debug2("sov - str="+str);
+					}else if (vo.getFieldType().equals("Date")){
+						Date ld = ((Date)vo.getFieldF1().get(x));
+						str = dldt.setDateDate(ld).toStringDate();
+					}else{
+						str = vo.getFieldF1().get(x).toString();
+					}
 				}
 			}
 		}catch (IllegalArgumentException|IllegalAccessException|NullPointerException|InvocationTargetException nsm){
@@ -1133,7 +1069,6 @@ public class DRFind<T>
 		try{
 			Object[] param = {str};
 			vo.getmSetO().invoke(vo,param);			//vo.setO<fieldType> ie setOInteger()
-
 		} catch (IllegalAccessException|NullPointerException|InvocationTargetException xx){ 
 			debug2("sov end - ft="+vo.getFieldType()+" str="+str+" fn="+vo.getFieldName()+" "+
 					vo.getIsMethod()+" "+xx.toString());
@@ -1165,7 +1100,7 @@ public class DRFind<T>
 		try{
 			Object[] param = {x};
 			vo.getmSetV().invoke(vo,param);
-			//debug2("sov end - ft="+vo.getFieldType());
+			//debug2("sv - ft="+vo.getFieldType()+" x="+x);
 
 		} catch (IllegalAccessException|NullPointerException|InvocationTargetException xx){ 
 			throw new DRNoMatchException("Error setValue object variables "+xx.toString());
